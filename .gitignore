@@ -1,0 +1,9 @@
+# variables de entorno
+.env
+.env.local
+.env.development
+.env.*
+
+# nunca subir secretos
+*.env
+node_modules
