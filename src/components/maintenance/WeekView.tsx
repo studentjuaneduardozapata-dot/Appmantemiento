@@ -46,7 +46,7 @@ export function WeekView({ weekStart, onWeekChange, onTaskClick }: WeekViewProps
   return (
     <div>
       {/* Navigation */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between px-4 py-2 bg-card border-b border-border">
         <button
           type="button"
           onClick={() => onWeekChange(-1)}
@@ -84,13 +84,13 @@ export function WeekView({ weekStart, onWeekChange, onTaskClick }: WeekViewProps
                 <div
                   className={cn(
                     'px-2 py-2 text-center border-b border-gray-100',
-                    today && 'bg-blue-50'
+                    today && 'bg-primary/10'
                   )}
                 >
                   <p
                     className={cn(
                       'text-xs font-medium uppercase',
-                      today ? 'text-blue-600' : 'text-gray-500'
+                      today ? 'text-primary' : 'text-gray-500'
                     )}
                   >
                     {format(day, 'EEE', { locale: es })}
@@ -98,7 +98,7 @@ export function WeekView({ weekStart, onWeekChange, onTaskClick }: WeekViewProps
                   <p
                     className={cn(
                       'text-sm font-bold mt-0.5',
-                      today ? 'text-blue-600' : 'text-gray-800'
+                      today ? 'text-primary' : 'text-gray-800'
                     )}
                   >
                     {format(day, 'd')}

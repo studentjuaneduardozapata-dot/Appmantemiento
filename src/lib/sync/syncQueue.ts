@@ -20,6 +20,18 @@ export async function enqueue(
   })
 }
 
+export async function purgeInvalidQueueItems(): Promise<void> {
+  // areas: 'code' is NOT NULL in Supabase — mark items without it as failed
+  await db.sync_queue
+    .where('table').equals('areas')
+    .and((item) =>
+      (item.status === 'pending' || item.status === 'processing') &&
+      item.operation !== 'delete' &&
+      !item.payload.code
+    )
+    .modify({ status: 'failed', last_error: 'Payload inválido: campo code requerido' })
+}
+
 export async function processPending(): Promise<void> {
   const pending = await db.sync_queue
     .where('status')

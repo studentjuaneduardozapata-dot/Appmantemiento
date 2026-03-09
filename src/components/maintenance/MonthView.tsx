@@ -62,7 +62,7 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
   return (
     <div>
       {/* Navigation */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between px-4 py-2 bg-card border-b border-border">
         <button
           type="button"
           onClick={() => onMonthChange(-1)}
@@ -111,14 +111,14 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
                 className={cn(
                   'min-h-[52px] p-1 flex flex-col items-center border-r border-gray-50 last:border-0',
                   !inMonth && 'opacity-30',
-                  today && 'bg-blue-50'
+                  today && 'bg-primary/10'
                 )}
               >
                 <span
                   className={cn(
                     'text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full',
                     today
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary text-primary-foreground'
                       : 'text-gray-700'
                   )}
                 >

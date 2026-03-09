@@ -13,6 +13,7 @@ export function useTasksByPlan(planId: string): MaintenanceTask[] | undefined {
       db.maintenance_tasks
         .where('plan_id')
         .equals(planId)
+        .and((t) => !t.deleted_at)
         .sortBy('next_due_date'),
     [planId]
   )
@@ -27,6 +28,7 @@ export function useTasksInRange(
       db.maintenance_tasks
         .where('next_due_date')
         .between(from, to, true, true)
+        .and((t) => !t.deleted_at)
         .toArray(),
     [from, to]
   )
@@ -39,7 +41,7 @@ export function useOverdueTasks(): MaintenanceTask[] | undefined {
       db.maintenance_tasks
         .where('next_due_date')
         .below(today)
-        .and((t) => t.status === 'pendiente')
+        .and((t) => t.status === 'pendiente' && !t.deleted_at)
         .toArray(),
     [today]
   )

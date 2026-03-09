@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -30,9 +31,28 @@ interface PlanFormProps {
 }
 
 export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
-  const assets = useLiveQuery(() =>
-    db.assets.filter((a) => !a.deleted_at).toArray()
-  )
+  const assets = useLiveQuery(() => db.assets.filter((a) => !a.deleted_at).toArray())
+  const areas = useLiveQuery(() => db.areas.orderBy('sort_order').filter((a) => !a.deleted_at).toArray())
+  const allCategories = useLiveQuery(() => db.asset_categories.filter((c) => !c.deleted_at).toArray())
+
+  const [filterAreaId, setFilterAreaId] = useState('')
+  const [filterCategoryId, setFilterCategoryId] = useState('')
+
+  const availableCategories = useMemo(() => {
+    if (!assets || !allCategories) return []
+    const pool = filterAreaId ? assets.filter((a) => a.area_id === filterAreaId) : assets
+    const catIds = new Set(pool.map((a) => a.category_id))
+    return allCategories.filter((c) => catIds.has(c.id))
+  }, [filterAreaId, assets, allCategories])
+
+  const visibleAssets = useMemo(() => {
+    if (!assets) return []
+    return assets.filter((a) => {
+      if (filterAreaId && a.area_id !== filterAreaId) return false
+      if (filterCategoryId && a.category_id !== filterCategoryId) return false
+      return true
+    })
+  }, [filterAreaId, filterCategoryId, assets])
 
   const {
     register,
@@ -66,6 +86,11 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
     }
   }
 
+  function handleAreaChange(areaId: string) {
+    setFilterAreaId(areaId)
+    setFilterCategoryId('')
+  }
+
   async function handleFormSubmit(data: PlanFormValues) {
     const { tasks, ...planData } = data
     await onSubmit(planData, tasks)
@@ -81,7 +106,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
         <input
           {...register('title')}
           placeholder="Ej: Mantenimiento preventivo ensacadora"
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         />
         {errors.title && (
           <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>
@@ -96,7 +121,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
         <textarea
           {...register('description')}
           rows={2}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
         />
       </div>
 
@@ -109,7 +134,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
           {([['preventivo', 'Preventivo (recurrente)'], ['unico', 'Único (una sola vez)']] as const).map(
             ([val, lbl]) => (
               <label key={val} className="flex-1 flex items-center gap-2 cursor-pointer">
-                <input {...register('type')} type="radio" value={val} className="accent-blue-600" />
+                <input {...register('type')} type="radio" value={val} className="accent-primary" />
                 <span className="text-sm text-gray-700">{lbl}</span>
               </label>
             )
@@ -117,22 +142,51 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
         </div>
       </div>
 
-      {/* Activos asociados */}
+      {/* Activos asociados con cascada */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Activos asociados <span className="text-red-500">*</span>
         </label>
+
+        {/* Filtros Área / Categoría */}
+        <div className="flex gap-2 mb-2">
+          <select
+            value={filterAreaId}
+            onChange={(e) => handleAreaChange(e.target.value)}
+            className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">Todas las áreas</option>
+            {areas?.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterCategoryId}
+            onChange={(e) => setFilterCategoryId(e.target.value)}
+            className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">Todas las categorías</option>
+            {availableCategories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <Controller
           control={control}
           name="asset_ids"
           render={({ field }) => (
             <div className="space-y-1 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
-              {assets?.length === 0 && (
+              {visibleAssets.length === 0 && (
                 <p className="text-xs text-gray-400 text-center py-2">
-                  Sin activos registrados
+                  Sin activos en esta selección
                 </p>
               )}
-              {assets?.map((asset) => (
+              {visibleAssets.map((asset) => (
                 <label
                   key={asset.id}
                   className="flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer"
@@ -140,10 +194,8 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
                   <input
                     type="checkbox"
                     checked={selectedAssetIds.includes(asset.id)}
-                    onChange={() =>
-                      toggleAsset(asset.id, field.value, field.onChange)
-                    }
-                    className="accent-blue-600"
+                    onChange={() => toggleAsset(asset.id, field.value, field.onChange)}
+                    className="accent-primary"
                   />
                   <span className="text-sm text-gray-800">{asset.name}</span>
                 </label>
@@ -153,6 +205,11 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
         />
         {errors.asset_ids && (
           <p className="text-xs text-red-500 mt-1">{errors.asset_ids.message}</p>
+        )}
+        {selectedAssetIds.length > 0 && (
+          <p className="text-xs text-primary mt-1">
+            {selectedAssetIds.length} activo(s) seleccionado(s)
+          </p>
         )}
       </div>
 
@@ -168,7 +225,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
                 <input
                   {...register(`tasks.${index}.description`)}
                   placeholder="Descripción de la tarea"
-                  className="w-full px-2.5 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-2.5 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500 whitespace-nowrap">
@@ -178,7 +235,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
                     {...register(`tasks.${index}.frequency_days`)}
                     type="number"
                     min={1}
-                    className="w-16 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-center"
+                    className="w-16 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-center"
                   />
                   <span className="text-xs text-gray-500">días</span>
                 </div>
@@ -206,7 +263,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
         <button
           type="button"
           onClick={() => append({ description: '', frequency_days: 7 })}
-          className="mt-2 flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+          className="mt-2 flex items-center gap-1 text-sm text-primary hover:text-primary/80"
         >
           <Plus className="w-4 h-4" />
           Añadir tarea
@@ -216,7 +273,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        className="w-full py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 disabled:opacity-50"
       >
         {isSubmitting ? 'Guardando...' : 'Crear plan'}
       </button>

@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { networkStatus } from './networkStatus'
-import { processPending } from './syncQueue'
+import { processPending, purgeInvalidQueueItems } from './syncQueue'
 import { syncBlobs } from './blobSync'
 import { pullAll } from './initialSync'
 import { startRealtime, stopRealtime } from './realtimeSync'
@@ -36,6 +36,7 @@ class SyncManager {
     })
 
     try {
+      await purgeInvalidQueueItems()
       await processPending()
       await syncBlobs()
       await pullAll()

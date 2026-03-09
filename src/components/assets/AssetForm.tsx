@@ -34,9 +34,9 @@ export function AssetForm({
   excludeAssetId,
 }: AssetFormProps) {
   const categories = useLiveQuery(() =>
-    db.asset_categories.orderBy('sort_order').toArray()
+    db.asset_categories.orderBy('sort_order').filter((c) => !c.deleted_at).toArray()
   )
-  const areas = useLiveQuery(() => db.areas.orderBy('sort_order').toArray())
+  const areas = useLiveQuery(() => db.areas.orderBy('sort_order').filter((a) => !a.deleted_at).toArray())
 
   const {
     register,
@@ -81,7 +81,7 @@ export function AssetForm({
         </label>
         <input
           {...register('name')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="Ej: Ensacadora 1"
         />
         {errors.name && (
@@ -96,7 +96,7 @@ export function AssetForm({
         </label>
         <select
           {...register('category_id')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">Seleccionar...</option>
           {categories?.map((c) => (
@@ -117,7 +117,7 @@ export function AssetForm({
         </label>
         <select
           {...register('area_id')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">Seleccionar...</option>
           {areas?.map((a) => (
@@ -155,7 +155,7 @@ export function AssetForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
         <select
           {...register('status')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="operativo">Operativo</option>
           <option value="en_mantenimiento">En mantenimiento</option>
@@ -180,7 +180,7 @@ export function AssetForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? 'Guardando...' : submitLabel}
       </button>

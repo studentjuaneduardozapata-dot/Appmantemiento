@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { supabase } from '@/integrations/supabase/client'
+import { enqueue } from './syncQueue'
 import { syncLogger } from './syncLogger'
 
 export async function syncBlobs(): Promise<void> {
@@ -32,17 +33,26 @@ export async function syncBlobs(): Promise<void> {
     const publicUrl = urlData.publicUrl
 
     // Reemplazar local ID por URL pública en todas las tablas que la referencian
-    await db.assets
-      .filter((a) => a.image_url === file.id)
-      .modify({ image_url: publicUrl, _synced: false })
+    const affectedAssets = await db.assets.filter((a) => a.image_url === file.id).toArray()
+    for (const asset of affectedAssets) {
+      await db.assets.update(asset.id, { image_url: publicUrl, _synced: false })
+      const updated = await db.assets.get(asset.id)
+      if (updated) await enqueue('assets', 'update', updated as unknown as Record<string, unknown>)
+    }
 
-    await db.incidents
-      .filter((i) => i.photo_url === file.id)
-      .modify({ photo_url: publicUrl, _synced: false })
+    const affectedIncidents = await db.incidents.filter((i) => i.photo_url === file.id).toArray()
+    for (const incident of affectedIncidents) {
+      await db.incidents.update(incident.id, { photo_url: publicUrl, _synced: false })
+      const updated = await db.incidents.get(incident.id)
+      if (updated) await enqueue('incidents', 'update', updated as unknown as Record<string, unknown>)
+    }
 
-    await db.maintenance_logs
-      .filter((l) => l.photo_url === file.id)
-      .modify({ photo_url: publicUrl, _synced: false })
+    const affectedLogs = await db.maintenance_logs.filter((l) => l.photo_url === file.id).toArray()
+    for (const log of affectedLogs) {
+      await db.maintenance_logs.update(log.id, { photo_url: publicUrl, _synced: false })
+      const updated = await db.maintenance_logs.get(log.id)
+      if (updated) await enqueue('maintenance_logs', 'update', updated as unknown as Record<string, unknown>)
+    }
 
     // Marcar como subida
     await db.offline_files.update(file.id, { uploaded_url: publicUrl })

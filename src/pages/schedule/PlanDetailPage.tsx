@@ -33,7 +33,7 @@ export default function PlanDetailPage() {
 
   async function handleDelete() {
     await deleteMaintenancePlan(id!)
-    navigate('/schedule', { replace: true })
+    navigate('/', { replace: true })
   }
 
   const assetNames = plan.asset_ids.map((aid) => assetMap.get(aid) ?? aid).join(', ')

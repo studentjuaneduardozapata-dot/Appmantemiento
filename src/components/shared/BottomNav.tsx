@@ -2,18 +2,15 @@ import { NavLink } from 'react-router-dom'
 import {
   Home,
   Wrench,
-  CalendarDays,
   AlertTriangle,
   ClipboardList,
   BarChart2,
   QrCode,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { label: 'Hoy', path: '/', icon: Home },
   { label: 'Activos', path: '/assets', icon: Wrench },
-  { label: 'Cronograma', path: '/schedule', icon: CalendarDays },
   { label: 'Fallas', path: '/incidents', icon: AlertTriangle },
   { label: 'Historial', path: '/history', icon: ClipboardList },
   { label: 'Resumen', path: '/summary', icon: BarChart2 },
@@ -22,20 +19,21 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 pb-safe md:hidden">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 pb-safe md:hidden"
+      style={{ backgroundColor: '#18181b', borderTop: '1px solid #27272a' }}
+    >
       <div className="flex items-center justify-around h-16">
         {NAV_ITEMS.map(({ label, path, icon: Icon }) => (
           <NavLink
             key={path}
             to={path}
             end={path === '/'}
-            className={({ isActive }) =>
-              cn(
-                'flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-xs transition-colors',
-                isActive
-                  ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              )
+            className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-xs transition-colors"
+            style={({ isActive }) =>
+              isActive
+                ? { color: '#6ab04c' }
+                : { color: '#71717a' }
             }
           >
             <Icon className="w-5 h-5" />

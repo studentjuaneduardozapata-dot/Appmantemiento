@@ -37,18 +37,18 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <PageHeader
         title="Cronograma"
         action={
           <div className="flex items-center gap-2">
-            <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <div className="flex bg-secondary rounded-lg p-0.5">
               <button
                 type="button"
                 onClick={() => setMode('week')}
                 className={cn(
                   'p-1.5 rounded-md transition-colors',
-                  mode === 'week' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'
+                  mode === 'week' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground'
                 )}
               >
                 <CalendarDays className="w-4 h-4" />
@@ -58,7 +58,7 @@ export default function SchedulePage() {
                 onClick={() => setMode('month')}
                 className={cn(
                   'p-1.5 rounded-md transition-colors',
-                  mode === 'month' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'
+                  mode === 'month' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground'
                 )}
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -66,7 +66,7 @@ export default function SchedulePage() {
             </div>
             <button
               onClick={() => navigate('/schedule/new-plan')}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
             >
               <Plus className="w-4 h-4" />
               Plan
@@ -75,7 +75,7 @@ export default function SchedulePage() {
         }
       />
 
-      <div className="bg-white border border-gray-200 mx-0 mt-0">
+      <div className="bg-card border border-border mx-0 mt-0">
         {mode === 'week' ? (
           <WeekView
             weekStart={weekAnchor}

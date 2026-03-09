@@ -17,6 +17,9 @@ export interface User {
   id: string
   name: string
   created_at: string
+  updated_at: string
+  deleted_at?: string
+  _synced: boolean
 }
 
 export interface Area {
@@ -25,6 +28,7 @@ export interface Area {
   name: string
   sort_order: number
   created_at: string
+  deleted_at?: string
 }
 
 export interface AssetCategory {
@@ -32,6 +36,7 @@ export interface AssetCategory {
   name: string
   sort_order: number
   created_at: string
+  deleted_at?: string
 }
 
 export type AssetStatus = 'operativo' | 'en_mantenimiento' | 'fuera_de_servicio'
@@ -86,6 +91,7 @@ export interface MaintenancePlan {
   type: PlanType
   created_at: string
   updated_at: string
+  deleted_at?: string
   _synced: boolean
 }
 
@@ -100,6 +106,7 @@ export interface MaintenanceTask {
   status: TaskStatus
   created_at: string
   updated_at: string
+  deleted_at?: string
   _synced: boolean
 }
 
@@ -200,6 +207,17 @@ class GMAODatabase extends Dexie {
       sync_queue: '++autoId, table, status, created_at',
       sync_meta: '&key',
       deleted_records: '&id, table_name, record_id, deleted_at',
+    })
+
+    this.version(2).stores({
+      areas: '&id, code, name, sort_order, created_at, deleted_at',
+      asset_categories: '&id, name, sort_order, created_at, deleted_at',
+      maintenance_plans: '&id, type, _synced, updated_at, deleted_at',
+      maintenance_tasks: '&id, plan_id, status, next_due_date, _synced, updated_at, deleted_at',
+    })
+
+    this.version(3).stores({
+      users: '&id, name, _synced, updated_at, created_at',
     })
   }
 }

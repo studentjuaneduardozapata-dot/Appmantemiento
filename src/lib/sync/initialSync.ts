@@ -17,7 +17,6 @@ type SyncTable = (typeof SYNC_TABLES)[number]
 
 // Tablas sin campo updated_at en Supabase — usar created_at como timestamp incremental
 const TABLES_WITH_CREATED_AT_ONLY = new Set<SyncTable>([
-  'users',
   'areas',
   'asset_categories',
   'maintenance_logs',

@@ -1,4 +1,5 @@
 import { db, generateId } from '@/lib/db'
+import { enqueue } from '@/lib/sync/syncQueue'
 
 const CATEGORIES = [
   'Silos',
@@ -48,31 +49,51 @@ export async function seedIfEmpty(): Promise<void> {
   const now = new Date().toISOString()
 
   if (catCount === 0) {
-    await db.asset_categories.bulkAdd(
-      CATEGORIES.map((name, idx) => ({
-        id: generateId(),
-        name,
-        sort_order: idx + 1,
-        created_at: now,
-      }))
-    )
+    const categories = CATEGORIES.map((name, idx) => ({
+      id: generateId(),
+      name,
+      sort_order: idx + 1,
+      created_at: now,
+    }))
+    await db.asset_categories.bulkAdd(categories)
+    for (const cat of categories) {
+      await enqueue('asset_categories', 'insert', cat as unknown as Record<string, unknown>)
+    }
   }
 
   if (areaCount === 0) {
-    await db.areas.bulkAdd(
-      AREAS.map((area, idx) => ({
-        id: generateId(),
-        code: area.code,
-        name: area.name,
-        sort_order: idx + 1,
-        created_at: now,
-      }))
-    )
+    const areas = AREAS.map((area, idx) => ({
+      id: generateId(),
+      code: area.code,
+      name: area.name,
+      sort_order: idx + 1,
+      created_at: now,
+    }))
+    await db.areas.bulkAdd(areas)
+    for (const area of areas) {
+      await enqueue('areas', 'insert', area as unknown as Record<string, unknown>)
+    }
   }
 
   // PIN por defecto si no existe
   const pinMeta = await db.sync_meta.get('admin_pin')
   if (!pinMeta) {
     await db.sync_meta.put({ key: 'admin_pin', value: '1234' })
+  }
+
+  // Migración única: encolar categorías y áreas existentes que nunca llegaron a Supabase
+  const migrated = await db.sync_meta.get('ref_data_enqueued_v1')
+  if (!migrated) {
+    const [allCats, allAreas] = await Promise.all([
+      db.asset_categories.toArray(),
+      db.areas.toArray(),
+    ])
+    for (const cat of allCats) {
+      await enqueue('asset_categories', 'insert', cat as unknown as Record<string, unknown>)
+    }
+    for (const area of allAreas) {
+      await enqueue('areas', 'insert', area as unknown as Record<string, unknown>)
+    }
+    await db.sync_meta.put({ key: 'ref_data_enqueued_v1', value: 'done' })
   }
 }

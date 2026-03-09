@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom'
 import {
   Home,
   Wrench,
-  CalendarDays,
   AlertTriangle,
   ClipboardList,
   BarChart2,
@@ -18,7 +17,6 @@ import { useSyncContext } from '@/contexts/SyncContext'
 const NAV_ITEMS = [
   { label: 'Hoy', path: '/', icon: Home },
   { label: 'Activos', path: '/assets', icon: Wrench },
-  { label: 'Cronograma', path: '/schedule', icon: CalendarDays },
   { label: 'Fallas', path: '/incidents', icon: AlertTriangle },
   { label: 'Historial', path: '/history', icon: ClipboardList },
   { label: 'Resumen', path: '/summary', icon: BarChart2 },
@@ -29,14 +27,15 @@ export function Sidebar() {
   const { isOnline, isSyncing, lastSync, triggerSync } = useSyncContext()
 
   return (
-    <aside className="hidden md:flex flex-col w-56 h-screen fixed left-0 top-0 bg-gray-900 text-white z-50">
+    <aside className="hidden md:flex flex-col w-56 h-screen fixed left-0 top-0 z-50"
+      style={{ backgroundColor: 'var(--bg-header)', color: 'var(--text-header)' }}>
       {/* Logo / Header */}
-      <div className="px-4 py-5 border-b border-gray-700">
+      <div className="px-4 py-5" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
         <div className="flex items-center gap-2">
-          <Wrench className="w-6 h-6 text-blue-400" />
+          <Wrench className="w-6 h-6" style={{ color: 'var(--primary)' }} />
           <div>
-            <p className="text-sm font-bold text-white leading-tight">GMAO Planta</p>
-            <p className="text-xs text-gray-400">Mantenimiento Industrial</p>
+            <p className="text-sm font-bold leading-tight" style={{ color: 'var(--text-header)' }}>GMAO Planta</p>
+            <p className="text-xs" style={{ color: '#71717a' }}>Mantenimiento Industrial</p>
           </div>
         </div>
       </div>
@@ -52,9 +51,14 @@ export function Sidebar() {
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
                 isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? 'text-primary-foreground'
+                  : 'hover:bg-white/5'
               )
+            }
+            style={({ isActive }) =>
+              isActive
+                ? { backgroundColor: 'var(--primary)', color: 'var(--text-header)' }
+                : { color: '#a1a1aa' }
             }
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
@@ -64,14 +68,14 @@ export function Sidebar() {
       </nav>
 
       {/* Footer: estado sync + admin */}
-      <div className="px-3 py-3 border-t border-gray-700 space-y-2">
+      <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
         {/* Sync status */}
-        <div className="flex items-center justify-between text-xs text-gray-400">
+        <div className="flex items-center justify-between text-xs" style={{ color: '#71717a' }}>
           <div className="flex items-center gap-1.5">
             {isOnline ? (
-              <Wifi className="w-3.5 h-3.5 text-green-400" />
+              <Wifi className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
             ) : (
-              <WifiOff className="w-3.5 h-3.5 text-red-400" />
+              <WifiOff className="w-3.5 h-3.5" style={{ color: 'var(--destructive)' }} />
             )}
             <span>{isOnline ? 'Online' : 'Offline'}</span>
           </div>
@@ -85,7 +89,7 @@ export function Sidebar() {
           </button>
         </div>
         {lastSync && (
-          <p className="text-[10px] text-gray-500">
+          <p className="text-[10px]" style={{ color: '#52525b' }}>
             Sync: {lastSync.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
           </p>
         )}
@@ -96,11 +100,10 @@ export function Sidebar() {
           className={({ isActive }) =>
             cn(
               'flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors',
-              isActive
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-500 hover:bg-gray-800 hover:text-gray-300'
+              isActive ? 'bg-white/10' : 'hover:bg-white/5'
             )
           }
+          style={{ color: '#71717a' }}
         >
           <Settings className="w-3.5 h-3.5" />
           <span>Administración</span>

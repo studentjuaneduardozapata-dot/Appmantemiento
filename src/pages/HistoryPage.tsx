@@ -28,8 +28,8 @@ export default function HistoryPage() {
   const data = useLiveQuery(async () => {
     const [assets, areas, plans, logs, incidents] = await Promise.all([
       db.assets.filter((a) => !a.deleted_at).toArray(),
-      db.areas.orderBy('sort_order').toArray(),
-      db.maintenance_plans.toArray(),
+      db.areas.orderBy('sort_order').filter((a) => !a.deleted_at).toArray(),
+      db.maintenance_plans.filter((p) => !p.deleted_at).toArray(),
       db.maintenance_logs
         .where('completed_at')
         .between(dateFrom, dateTo + 'T99', true, true)

@@ -9,7 +9,12 @@ import { enqueue } from '@/lib/sync/syncQueue'
 // ─── Reads ─────────────────────────────────────────────────────────────────────
 
 export function useMaintenancePlans(): MaintenancePlan[] | undefined {
-  return useLiveQuery(() => db.maintenance_plans.orderBy('created_at').toArray())
+  return useLiveQuery(() =>
+    db.maintenance_plans
+      .orderBy('created_at')
+      .filter((p) => !p.deleted_at)
+      .toArray()
+  )
 }
 
 export function useMaintenancePlan(id: string): MaintenancePlan | undefined {
@@ -75,16 +80,17 @@ export async function createMaintenancePlan(
 }
 
 export async function deleteMaintenancePlan(id: string): Promise<void> {
+  const now = new Date().toISOString()
   const tasks = await db.maintenance_tasks.where('plan_id').equals(id).toArray()
   await db.transaction(
     'rw',
     [db.maintenance_plans, db.maintenance_tasks, db.sync_queue],
     async () => {
       for (const task of tasks) {
-        await db.maintenance_tasks.delete(task.id)
+        await db.maintenance_tasks.update(task.id, { deleted_at: now, _synced: false })
         await enqueue('maintenance_tasks', 'delete', { id: task.id })
       }
-      await db.maintenance_plans.delete(id)
+      await db.maintenance_plans.update(id, { deleted_at: now, _synced: false })
       await enqueue('maintenance_plans', 'delete', { id })
     }
   )

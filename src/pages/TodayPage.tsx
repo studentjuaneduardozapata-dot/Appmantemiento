@@ -1,10 +1,10 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { format, addDays } from 'date-fns'
+import { format, addDays, startOfWeek, addWeeks, startOfMonth, addMonths } from 'date-fns'
 import { es } from 'date-fns/locale'
 import {
   AlertTriangle,
-  CheckCircle2,
   Clock,
   Calendar,
   QrCode,
@@ -12,11 +12,17 @@ import {
   WifiOff,
   RefreshCw,
   Settings,
+  CalendarDays,
+  LayoutGrid,
+  Plus,
+  Zap,
 } from 'lucide-react'
 import { db } from '@/lib/db'
 import type { MaintenanceTask, Incident } from '@/lib/db'
 import { cn } from '@/lib/utils'
 import { useSyncContext } from '@/contexts/SyncContext'
+import { WeekView } from '@/components/maintenance/WeekView'
+import { MonthView } from '@/components/maintenance/MonthView'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -32,160 +38,159 @@ function endOfWeekStr(): string {
   return format(addDays(new Date(), 7), 'yyyy-MM-dd')
 }
 
-// ─── Sub-componentes ──────────────────────────────────────────────────────────
+// ─── StatusCard (compact 2×2 grid card) ───────────────────────────────────────
 
-interface SectionProps {
+interface StatusCardProps {
   title: string
   count: number
+  icon: React.ReactNode
   colorClass: string
   borderClass: string
   bgClass: string
-  icon: React.ReactNode
-  children: React.ReactNode
+  badgeClass: string
   emptyText: string
+  children: React.ReactNode
+  extraCount?: number
 }
 
-function Section({
+function StatusCard({
   title,
   count,
+  icon,
   colorClass,
   borderClass,
   bgClass,
-  icon,
-  children,
+  badgeClass,
   emptyText,
-}: SectionProps) {
+  children,
+  extraCount,
+}: StatusCardProps) {
   return (
-    <div className={cn('rounded-xl border-l-4 bg-white shadow-sm overflow-hidden', borderClass)}>
-      <div className={cn('flex items-center gap-2 px-4 py-3', bgClass)}>
-        <span className={colorClass}>{icon}</span>
-        <h2 className={cn('font-semibold text-sm', colorClass)}>
-          {title}
-        </h2>
+    <div className={cn('rounded-xl border-l-4 bg-card shadow-sm overflow-hidden flex flex-col', borderClass)}>
+      {/* Header */}
+      <div className={cn('flex items-center gap-1.5 px-3 py-2', bgClass)}>
+        <span className={cn('flex-shrink-0', colorClass)}>{icon}</span>
+        <span className={cn('font-semibold text-xs flex-1 truncate', colorClass)}>{title}</span>
         <span
           className={cn(
-            'ml-auto text-xs font-bold px-2 py-0.5 rounded-full text-white',
-            count > 0
-              ? colorClass.includes('red')
-                ? 'bg-red-500'
-                : colorClass.includes('yellow') || colorClass.includes('amber')
-                  ? 'bg-amber-500'
-                  : colorClass.includes('orange')
-                    ? 'bg-orange-500'
-                    : 'bg-green-500'
-              : 'bg-gray-400'
+            'text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white flex-shrink-0',
+            count > 0 ? badgeClass : 'bg-gray-400'
           )}
         >
           {count}
         </span>
       </div>
-      <div className="divide-y divide-gray-100">
+      {/* Body */}
+      <div className="flex-1 divide-y divide-gray-50">
         {count === 0 ? (
-          <p className="px-4 py-3 text-sm text-gray-400">{emptyText}</p>
+          <p className="px-3 py-2 text-[11px] text-gray-400">{emptyText}</p>
         ) : (
-          children
+          <>
+            {children}
+            {extraCount != null && extraCount > 0 && (
+              <p className="px-3 py-1.5 text-[10px] text-gray-400">+{extraCount} más</p>
+            )}
+          </>
         )}
       </div>
     </div>
   )
 }
 
-interface TaskRowProps {
-  task: MaintenanceTask
-  planTitle?: string
-}
+// ─── Compact row helpers ───────────────────────────────────────────────────────
 
-function TaskRow({ task, planTitle }: TaskRowProps) {
+function TaskCompactRow({ task, planTitle }: { task: MaintenanceTask; planTitle?: string }) {
   return (
-    <div className="px-4 py-3">
-      <p className="text-sm font-medium text-gray-900 line-clamp-1">{task.description}</p>
-      {planTitle && (
-        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{planTitle}</p>
-      )}
-      <p className="text-xs text-gray-400 mt-0.5">
-        Vence: {format(new Date(task.next_due_date + 'T00:00:00'), 'dd/MM/yyyy')}
-      </p>
+    <div className="px-3 py-1.5">
+      <p className="text-[11px] font-medium text-gray-800 truncate">{task.description}</p>
+      {planTitle && <p className="text-[10px] text-gray-400 truncate">{planTitle}</p>}
     </div>
   )
 }
 
-interface IncidentRowProps {
-  incident: Incident
-  assetName?: string
-}
-
-function IncidentRow({ incident, assetName }: IncidentRowProps) {
-  const typeLabel: Record<string, string> = {
-    mecanica: 'Mecánica',
-    electrica: 'Eléctrica',
-    neumatica: 'Neumática',
-  }
-
+function IncidentCompactRow({ incident, assetName }: { incident: Incident; assetName?: string }) {
   return (
-    <div className="px-4 py-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-900 line-clamp-1">
-            {assetName ?? 'Activo desconocido'}
-          </p>
-          {incident.description && (
-            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-              {incident.description}
-            </p>
-          )}
-          <p className="text-xs text-gray-400 mt-0.5">
-            {typeLabel[incident.type] ?? incident.type} — Reportada:{' '}
-            {format(new Date(incident.reported_at), 'dd/MM/yyyy', { locale: es })}
-          </p>
-        </div>
-        <span
-          className={cn(
-            'flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full',
-            incident.status === 'abierta'
-              ? 'bg-red-100 text-red-700'
-              : 'bg-orange-100 text-orange-700'
-          )}
-        >
-          {incident.status === 'abierta' ? 'Abierta' : 'En progreso'}
-        </span>
+    <div className="px-3 py-1.5 flex items-center gap-1.5">
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-medium text-gray-800 truncate">
+          {assetName ?? 'Activo desconocido'}
+        </p>
+        {incident.description && (
+          <p className="text-[10px] text-gray-400 truncate">{incident.description}</p>
+        )}
       </div>
+      <span
+        className={cn(
+          'flex-shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full',
+          incident.status === 'abierta'
+            ? 'bg-red-100 text-red-700'
+            : 'bg-orange-100 text-orange-700'
+        )}
+      >
+        {incident.status === 'abierta' ? 'Abierta' : 'Progreso'}
+      </span>
     </div>
   )
 }
 
 // ─── Página principal ──────────────────────────────────────────────────────────
 
+type ViewMode = 'week' | 'month'
+
 export default function TodayPage() {
   const navigate = useNavigate()
   const { isOnline, isSyncing, lastSync, triggerSync } = useSyncContext()
 
+  // ── Cronograma state ──
+  const [mode, setMode] = useState<ViewMode>('month')
+  const [weekAnchor, setWeekAnchor] = useState(() =>
+    startOfWeek(new Date(), { weekStartsOn: 1 })
+  )
+  const [monthAnchor, setMonthAnchor] = useState(() => startOfMonth(new Date()))
+
+  function handleWeekChange(dir: -1 | 1) {
+    setWeekAnchor((prev) => addWeeks(prev, dir))
+  }
+
+  function handleMonthChange(dir: -1 | 1) {
+    setMonthAnchor((prev) => addMonths(prev, dir))
+  }
+
+  function handleDayClick(dateStr: string) {
+    const date = new Date(dateStr + 'T00:00:00')
+    setWeekAnchor(startOfWeek(date, { weekStartsOn: 1 }))
+    setMode('week')
+  }
+
+  function handleTaskClick(_taskId: string, planId: string) {
+    navigate(`/schedule/plan/${planId}`)
+  }
+
+  // ── Prioridades del día ──
   const today = todayStr()
   const tomorrow = tomorrowStr()
   const endOfWeek = endOfWeekStr()
 
-  // Tareas vencidas (antes de hoy, pendientes)
   const overdueTasks = useLiveQuery(
     () =>
       db.maintenance_tasks
         .where('next_due_date')
         .below(today)
-        .and((t) => t.status === 'pendiente')
+        .and((t) => t.status === 'pendiente' && !t.deleted_at)
         .toArray(),
     [today]
   )
 
-  // Tareas de hoy
   const todayTasks = useLiveQuery(
     () =>
       db.maintenance_tasks
         .where('next_due_date')
         .equals(today)
-        .and((t) => t.status === 'pendiente')
+        .and((t) => t.status === 'pendiente' && !t.deleted_at)
         .toArray(),
     [today]
   )
 
-  // Fallas abiertas o en progreso
   const openIncidents = useLiveQuery(() =>
     db.incidents
       .where('status')
@@ -194,21 +199,19 @@ export default function TodayPage() {
       .toArray()
   )
 
-  // Tareas de esta semana (mañana a 7 días)
   const weekTasks = useLiveQuery(
     () =>
       db.maintenance_tasks
         .where('next_due_date')
         .between(tomorrow, endOfWeek, true, true)
-        .and((t) => t.status === 'pendiente')
+        .and((t) => t.status === 'pendiente' && !t.deleted_at)
         .toArray(),
     [tomorrow, endOfWeek]
   )
 
-  // Planes para enriquecer tareas con título
-  const allPlans = useLiveQuery(() => db.maintenance_plans.toArray())
-
-  // Assets para enriquecer incidents con nombre
+  const allPlans = useLiveQuery(() =>
+    db.maintenance_plans.filter((p) => !p.deleted_at).toArray()
+  )
   const allAssets = useLiveQuery(() => db.assets.toArray())
 
   const planMap = new Map(allPlans?.map((p) => [p.id, p.title]) ?? [])
@@ -223,36 +226,36 @@ export default function TodayPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
+        <RefreshCw className="w-6 h-6 animate-spin text-primary" />
       </div>
     )
   }
 
   const dateLabel = format(new Date(), "EEEE d 'de' MMMM", { locale: es })
 
+  const MAX_ITEMS = 3
+
   return (
     <div className="relative max-w-2xl mx-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
+      <div className="sticky top-0 z-10 border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-base font-bold text-gray-900 capitalize">{dateLabel}</h1>
-            <p className="text-xs text-gray-500">Panel de hoy</p>
+            <h1 className="text-base font-bold text-foreground capitalize">{dateLabel}</h1>
+            <p className="text-xs text-muted-foreground">Panel de hoy</p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Online indicator */}
             <div className="flex items-center gap-1 text-xs">
               {isOnline ? (
-                <Wifi className="w-3.5 h-3.5 text-green-500" />
+                <Wifi className="w-3.5 h-3.5 text-primary" />
               ) : (
                 <WifiOff className="w-3.5 h-3.5 text-red-500" />
               )}
             </div>
-            {/* Sync button */}
             <button
               onClick={triggerSync}
               disabled={isSyncing || !isOnline}
-              className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40 transition-colors"
               title={
                 lastSync
                   ? `Última sync: ${format(lastSync, 'HH:mm')}`
@@ -260,98 +263,162 @@ export default function TodayPage() {
               }
             >
               <RefreshCw
-                className={cn('w-4 h-4 text-gray-600', isSyncing && 'animate-spin')}
+                className={cn('w-4 h-4 text-foreground', isSyncing && 'animate-spin')}
               />
             </button>
-            {/* Admin (discreto) */}
             <button
               onClick={() => navigate('/admin')}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors md:hidden"
+              className="p-1.5 rounded-lg hover:bg-accent transition-colors md:hidden"
               title="Administración"
             >
-              <Settings className="w-4 h-4 text-gray-300" />
+              <Settings className="w-4 h-4 text-foreground" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-4 py-4 space-y-3">
-        {/* 1. Vencidas */}
-        <Section
-          title="Vencidas"
-          count={overdueTasks.length}
-          colorClass="text-red-700"
-          borderClass="border-red-500"
-          bgClass="bg-red-50"
-          icon={<AlertTriangle className="w-4 h-4" />}
-          emptyText="Sin tareas vencidas"
-        >
-          {overdueTasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              planTitle={planMap.get(task.plan_id)}
-            />
-          ))}
-        </Section>
+      <div className="px-4 py-4 space-y-4">
+        {/* ── 2×2 Status Grid ── */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Vencidas */}
+          <StatusCard
+            title="Vencidas"
+            count={overdueTasks.length}
+            colorClass="text-red-700"
+            borderClass="border-red-500"
+            bgClass="bg-red-50"
+            badgeClass="bg-red-500"
+            icon={<AlertTriangle className="w-3.5 h-3.5" />}
+            emptyText="Sin tareas vencidas"
+            extraCount={overdueTasks.length - MAX_ITEMS}
+          >
+            {overdueTasks.slice(0, MAX_ITEMS).map((task) => (
+              <TaskCompactRow
+                key={task.id}
+                task={task}
+                planTitle={planMap.get(task.plan_id)}
+              />
+            ))}
+          </StatusCard>
 
-        {/* 2. Hoy */}
-        <Section
-          title="Hoy"
-          count={todayTasks.length}
-          colorClass="text-amber-700"
-          borderClass="border-amber-400"
-          bgClass="bg-amber-50"
-          icon={<Clock className="w-4 h-4" />}
-          emptyText="Sin tareas programadas para hoy"
-        >
-          {todayTasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              planTitle={planMap.get(task.plan_id)}
-            />
-          ))}
-        </Section>
+          {/* Hoy */}
+          <StatusCard
+            title="Hoy"
+            count={todayTasks.length}
+            colorClass="text-amber-700"
+            borderClass="border-amber-400"
+            bgClass="bg-amber-50"
+            badgeClass="bg-amber-500"
+            icon={<Clock className="w-3.5 h-3.5" />}
+            emptyText="Sin tareas para hoy"
+            extraCount={todayTasks.length - MAX_ITEMS}
+          >
+            {todayTasks.slice(0, MAX_ITEMS).map((task) => (
+              <TaskCompactRow
+                key={task.id}
+                task={task}
+                planTitle={planMap.get(task.plan_id)}
+              />
+            ))}
+          </StatusCard>
 
-        {/* 3. Fallas abiertas */}
-        <Section
-          title="Fallas abiertas"
-          count={openIncidents.length}
-          colorClass="text-orange-700"
-          borderClass="border-orange-400"
-          bgClass="bg-orange-50"
-          icon={<CheckCircle2 className="w-4 h-4" />}
-          emptyText="Sin fallas abiertas"
-        >
-          {openIncidents.map((incident) => (
-            <IncidentRow
-              key={incident.id}
-              incident={incident}
-              assetName={assetMap.get(incident.asset_id)}
-            />
-          ))}
-        </Section>
+          {/* Fallas abiertas */}
+          <StatusCard
+            title="Fallas"
+            count={openIncidents.length}
+            colorClass="text-orange-700"
+            borderClass="border-orange-400"
+            bgClass="bg-orange-50"
+            badgeClass="bg-orange-500"
+            icon={<Zap className="w-3.5 h-3.5" />}
+            emptyText="Sin fallas abiertas"
+            extraCount={openIncidents.length - MAX_ITEMS}
+          >
+            {openIncidents.slice(0, MAX_ITEMS).map((incident) => (
+              <IncidentCompactRow
+                key={incident.id}
+                incident={incident}
+                assetName={assetMap.get(incident.asset_id)}
+              />
+            ))}
+          </StatusCard>
 
-        {/* 4. Esta semana */}
-        <Section
-          title="Esta semana"
-          count={weekTasks.length}
-          colorClass="text-green-700"
-          borderClass="border-green-400"
-          bgClass="bg-green-50"
-          icon={<Calendar className="w-4 h-4" />}
-          emptyText="Sin tareas programadas esta semana"
-        >
-          {weekTasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              planTitle={planMap.get(task.plan_id)}
-            />
-          ))}
-        </Section>
+          {/* Esta semana */}
+          <StatusCard
+            title="Esta semana"
+            count={weekTasks.length}
+            colorClass="text-green-700"
+            borderClass="border-green-400"
+            bgClass="bg-green-50"
+            badgeClass="bg-green-500"
+            icon={<Calendar className="w-3.5 h-3.5" />}
+            emptyText="Sin tareas esta semana"
+            extraCount={weekTasks.length - MAX_ITEMS}
+          >
+            {weekTasks.slice(0, MAX_ITEMS).map((task) => (
+              <TaskCompactRow
+                key={task.id}
+                task={task}
+                planTitle={planMap.get(task.plan_id)}
+              />
+            ))}
+          </StatusCard>
+        </div>
+
+        {/* ── Cronograma ── */}
+        <div className="pt-2">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-bold text-foreground">Cronograma</h2>
+            <div className="flex items-center gap-2">
+              <div className="flex bg-secondary rounded-lg p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setMode('week')}
+                  className={cn(
+                    'p-1.5 rounded-md transition-colors',
+                    mode === 'week' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarDays className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('month')}
+                  className={cn(
+                    'p-1.5 rounded-md transition-colors',
+                    mode === 'month' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground'
+                  )}
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+              </div>
+              <button
+                onClick={() => navigate('/schedule/new-plan')}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
+              >
+                <Plus className="w-4 h-4" />
+                Plan
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            {mode === 'week' ? (
+              <WeekView
+                weekStart={weekAnchor}
+                onWeekChange={handleWeekChange}
+                onTaskClick={handleTaskClick}
+              />
+            ) : (
+              <MonthView
+                month={monthAnchor}
+                onMonthChange={handleMonthChange}
+                onDayClick={handleDayClick}
+              />
+            )}
+          </div>
+        </div>
 
         {/* Spacer para FAB */}
         <div className="h-16" />
@@ -360,7 +427,7 @@ export default function TodayPage() {
       {/* FAB — Escanear QR */}
       <button
         onClick={() => navigate('/scan')}
-        className="fixed bottom-20 right-4 md:bottom-6 z-40 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center"
+        className="fixed bottom-20 right-4 md:bottom-6 z-40 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center"
         aria-label="Escanear QR"
       >
         <QrCode className="w-6 h-6" />

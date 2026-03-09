@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Pencil, Trash2, Check, X, ChevronUp, ChevronDown } fro
 import { toast } from 'sonner'
 import { db, generateId } from '@/lib/db'
 import type { User, Area, AssetCategory } from '@/lib/db'
+import { enqueue } from '@/lib/sync/syncQueue'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { cn } from '@/lib/utils'
 
@@ -46,10 +47,10 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
   const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫']
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-xs">
-        <h1 className="text-center text-lg font-semibold text-gray-900 mb-2">Administración</h1>
-        <p className="text-center text-sm text-gray-500 mb-8">Ingresa el PIN de acceso</p>
+        <h1 className="text-center text-lg font-semibold text-foreground mb-2">Administración</h1>
+        <p className="text-center text-sm text-muted-foreground mb-8">Ingresa el PIN de acceso</p>
 
         {/* Dots */}
         <div className={cn('flex justify-center gap-4 mb-8', error && 'animate-bounce')}>
@@ -61,8 +62,8 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
                 input.length > i
                   ? error
                     ? 'bg-red-500 border-red-500'
-                    : 'bg-blue-600 border-blue-600'
-                  : 'border-gray-300 bg-white'
+                    : 'bg-primary border-primary'
+                  : 'border-border bg-card'
               )}
             />
           ))}
@@ -79,7 +80,7 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
               className={cn(
                 'h-14 rounded-xl text-xl font-semibold transition-colors',
                 k
-                  ? 'bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 active:bg-gray-100'
+                  ? 'bg-card border border-border text-foreground hover:bg-accent active:bg-accent/80'
                   : 'invisible'
               )}
             >
@@ -107,7 +108,7 @@ const TABS: { id: TabId; label: string }[] = [
 // ─── Usuarios Tab ─────────────────────────────────────────────────────────────
 
 function UsersTab() {
-  const users = useLiveQuery(() => db.users.orderBy('name').toArray())
+  const users = useLiveQuery(() => db.users.orderBy('name').filter((u) => !u.deleted_at).toArray())
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [addingNew, setAddingNew] = useState(false)
@@ -117,7 +118,10 @@ function UsersTab() {
   async function handleAdd() {
     const name = newName.trim()
     if (!name) return
-    await db.users.add({ id: generateId(), name, created_at: new Date().toISOString() })
+    const now = new Date().toISOString()
+    const record: User = { id: generateId(), name, created_at: now, updated_at: now, _synced: false }
+    await db.users.add(record)
+    await enqueue('users', 'insert', record as unknown as Record<string, unknown>)
     setNewName('')
     setAddingNew(false)
     toast.success('Usuario creado')
@@ -126,20 +130,25 @@ function UsersTab() {
   async function handleSaveEdit(id: string) {
     const name = editName.trim()
     if (!name) return
-    await db.users.update(id, { name })
+    const now = new Date().toISOString()
+    await db.users.update(id, { name, updated_at: now, _synced: false })
+    const user = await db.users.get(id)
+    if (user) await enqueue('users', 'update', user as unknown as Record<string, unknown>)
     setEditingId(null)
     toast.success('Usuario actualizado')
   }
 
   async function handleDelete(user: User) {
-    await db.users.delete(user.id)
+    const now = new Date().toISOString()
+    await db.users.update(user.id, { deleted_at: now, _synced: false })
+    await enqueue('users', 'delete', { id: user.id })
     setDeleteTarget(null)
     toast.success('Usuario eliminado')
   }
 
   return (
     <div className="space-y-2">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
+      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-gray-100">
         {users === undefined ? (
           <p className="text-center text-sm text-gray-400 py-6">Cargando...</p>
         ) : users.length === 0 && !addingNew ? (
@@ -154,7 +163,7 @@ function UsersTab() {
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(u.id)}
-                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button
                     type="button"
@@ -181,7 +190,7 @@ function UsersTab() {
                         setEditingId(u.id)
                         setEditName(u.name)
                       }}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
@@ -204,7 +213,7 @@ function UsersTab() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <button
                   type="button"
@@ -229,7 +238,7 @@ function UsersTab() {
         <button
           type="button"
           onClick={() => setAddingNew(true)}
-          className="flex items-center gap-2 text-sm text-blue-600 font-medium px-1"
+          className="flex items-center gap-2 text-sm text-primary font-medium px-1"
         >
           <Plus className="w-4 h-4" />
           Agregar usuario
@@ -251,8 +260,9 @@ function UsersTab() {
 // ─── Áreas Tab ────────────────────────────────────────────────────────────────
 
 function AreasTab() {
-  const areas = useLiveQuery(() => db.areas.orderBy('sort_order').toArray())
+  const areas = useLiveQuery(() => db.areas.orderBy('sort_order').filter((a) => !a.deleted_at).toArray())
   const [editingId, setEditingId] = useState<string | null>(null)
+
   const [editCode, setEditCode] = useState('')
   const [editName, setEditName] = useState('')
   const [addingNew, setAddingNew] = useState(false)
@@ -265,12 +275,16 @@ function AreasTab() {
     const code = newCode.trim()
     if (!name || !code) return
     const maxOrder = areas ? Math.max(0, ...areas.map((a) => a.sort_order)) : 0
-    await db.areas.add({
+    const area: Area = {
       id: generateId(),
       code,
       name,
       sort_order: maxOrder + 10,
       created_at: new Date().toISOString(),
+    }
+    await db.transaction('rw', [db.areas, db.sync_queue], async () => {
+      await db.areas.add(area)
+      await enqueue('areas', 'insert', area as unknown as Record<string, unknown>)
     })
     setNewCode('')
     setNewName('')
@@ -280,14 +294,23 @@ function AreasTab() {
 
   async function handleSaveEdit(id: string) {
     const name = editName.trim()
-    if (!name) return
-    await db.areas.update(id, { name, code: editCode.trim() })
+    const code = editCode.trim()
+    if (!name || !code) return
+    await db.transaction('rw', [db.areas, db.sync_queue], async () => {
+      await db.areas.update(id, { name, code })
+      const area = await db.areas.get(id)
+      if (area) await enqueue('areas', 'update', area as unknown as Record<string, unknown>)
+    })
     setEditingId(null)
     toast.success('Área actualizada')
   }
 
   async function handleDelete(area: Area) {
-    await db.areas.delete(area.id)
+    const now = new Date().toISOString()
+    await db.transaction('rw', [db.areas, db.sync_queue], async () => {
+      await db.areas.update(area.id, { deleted_at: now })
+      await enqueue('areas', 'delete', { id: area.id })
+    })
     setDeleteTarget(null)
     toast.success('Área eliminada')
   }
@@ -298,13 +321,17 @@ function AreasTab() {
     const swapIdx = idx + direction
     if (swapIdx < 0 || swapIdx >= areas.length) return
     const other = areas[swapIdx]
-    await db.areas.update(area.id, { sort_order: other.sort_order })
-    await db.areas.update(other.id, { sort_order: area.sort_order })
+    await db.transaction('rw', [db.areas, db.sync_queue], async () => {
+      await db.areas.update(area.id, { sort_order: other.sort_order })
+      await db.areas.update(other.id, { sort_order: area.sort_order })
+      await enqueue('areas', 'update', { ...area, sort_order: other.sort_order } as unknown as Record<string, unknown>)
+      await enqueue('areas', 'update', { ...other, sort_order: area.sort_order } as unknown as Record<string, unknown>)
+    })
   }
 
   return (
     <div className="space-y-2">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
+      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-gray-100">
         {areas === undefined ? (
           <p className="text-center text-sm text-gray-400 py-6">Cargando...</p>
         ) : areas.length === 0 && !addingNew ? (
@@ -319,14 +346,14 @@ function AreasTab() {
                     placeholder="Código"
                     value={editCode}
                     onChange={(e) => setEditCode(e.target.value)}
-                    className="w-20 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-20 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <input
                     placeholder="Nombre"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(a.id)}
-                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button
                     type="button"
@@ -373,7 +400,7 @@ function AreasTab() {
                         setEditCode(a.code)
                         setEditName(a.name)
                       }}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
@@ -395,14 +422,14 @@ function AreasTab() {
                   placeholder="Código"
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value)}
-                  className="w-20 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-20 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <input
                   placeholder="Nombre del área"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <button
                   type="button"
@@ -427,7 +454,7 @@ function AreasTab() {
         <button
           type="button"
           onClick={() => setAddingNew(true)}
-          className="flex items-center gap-2 text-sm text-blue-600 font-medium px-1"
+          className="flex items-center gap-2 text-sm text-primary font-medium px-1"
         >
           <Plus className="w-4 h-4" />
           Agregar área
@@ -449,7 +476,7 @@ function AreasTab() {
 // ─── Categorías Tab ───────────────────────────────────────────────────────────
 
 function CategoriesTab() {
-  const cats = useLiveQuery(() => db.asset_categories.orderBy('sort_order').toArray())
+  const cats = useLiveQuery(() => db.asset_categories.orderBy('sort_order').filter((c) => !c.deleted_at).toArray())
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [addingNew, setAddingNew] = useState(false)
@@ -460,11 +487,15 @@ function CategoriesTab() {
     const name = newName.trim()
     if (!name) return
     const maxOrder = cats ? Math.max(0, ...cats.map((c) => c.sort_order)) : 0
-    await db.asset_categories.add({
+    const cat: AssetCategory = {
       id: generateId(),
       name,
       sort_order: maxOrder + 10,
       created_at: new Date().toISOString(),
+    }
+    await db.transaction('rw', [db.asset_categories, db.sync_queue], async () => {
+      await db.asset_categories.add(cat)
+      await enqueue('asset_categories', 'insert', cat as unknown as Record<string, unknown>)
     })
     setNewName('')
     setAddingNew(false)
@@ -474,20 +505,28 @@ function CategoriesTab() {
   async function handleSaveEdit(id: string) {
     const name = editName.trim()
     if (!name) return
-    await db.asset_categories.update(id, { name })
+    await db.transaction('rw', [db.asset_categories, db.sync_queue], async () => {
+      await db.asset_categories.update(id, { name })
+      const cat = await db.asset_categories.get(id)
+      if (cat) await enqueue('asset_categories', 'update', cat as unknown as Record<string, unknown>)
+    })
     setEditingId(null)
     toast.success('Categoría actualizada')
   }
 
   async function handleDelete(cat: AssetCategory) {
-    await db.asset_categories.delete(cat.id)
+    const now = new Date().toISOString()
+    await db.transaction('rw', [db.asset_categories, db.sync_queue], async () => {
+      await db.asset_categories.update(cat.id, { deleted_at: now })
+      await enqueue('asset_categories', 'delete', { id: cat.id })
+    })
     setDeleteTarget(null)
     toast.success('Categoría eliminada')
   }
 
   return (
     <div className="space-y-2">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
+      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-gray-100">
         {cats === undefined ? (
           <p className="text-center text-sm text-gray-400 py-6">Cargando...</p>
         ) : cats.length === 0 && !addingNew ? (
@@ -502,7 +541,7 @@ function CategoriesTab() {
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(c.id)}
-                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button
                     type="button"
@@ -529,7 +568,7 @@ function CategoriesTab() {
                         setEditingId(c.id)
                         setEditName(c.name)
                       }}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
@@ -552,7 +591,7 @@ function CategoriesTab() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <button
                   type="button"
@@ -577,7 +616,7 @@ function CategoriesTab() {
         <button
           type="button"
           onClick={() => setAddingNew(true)}
-          className="flex items-center gap-2 text-sm text-blue-600 font-medium px-1"
+          className="flex items-center gap-2 text-sm text-primary font-medium px-1"
         >
           <Plus className="w-4 h-4" />
           Agregar categoría
@@ -620,7 +659,7 @@ function PinTab() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+    <div className="bg-card rounded-xl border border-border p-4 space-y-4">
       <div className="space-y-3">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -636,7 +675,7 @@ function PinTab() {
               setErrorMsg('')
             }}
             placeholder="••••"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center tracking-widest"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest"
           />
         </div>
         <div>
@@ -651,7 +690,7 @@ function PinTab() {
               setErrorMsg('')
             }}
             placeholder="••••"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center tracking-widest"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest"
           />
         </div>
         {errorMsg && <p className="text-xs text-red-600">{errorMsg}</p>}
@@ -659,7 +698,7 @@ function PinTab() {
       <button
         type="button"
         onClick={handleSave}
-        className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700"
+        className="w-full py-2.5 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90"
       >
         Guardar PIN
       </button>
@@ -682,7 +721,7 @@ function DataTab() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+    <div className="bg-card rounded-xl border border-border p-4 space-y-4">
       <div>
         <p className="text-sm font-medium text-gray-900 mb-1">Limpiar cache local</p>
         <p className="text-xs text-gray-500">
@@ -716,32 +755,32 @@ function AdminPanel({ onLock }: { onLock: () => void }) {
   const [activeTab, setActiveTab] = useState<TabId>('usuarios')
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 border-b border-border px-4 py-3 flex items-center gap-3">
         <button
           type="button"
           onClick={onLock}
-          className="p-1 -ml-1 text-gray-500 hover:text-gray-700"
+          className="p-1 -ml-1 text-foreground hover:text-primary"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-base font-semibold text-gray-900">Administración</h1>
+        <h1 className="text-base font-semibold text-foreground">Administración</h1>
       </div>
 
       {/* Tab bar */}
-      <div className="bg-white border-b border-gray-200 px-4">
-        <div className="flex gap-1 overflow-x-auto">
+      <div className="border-b border-border px-4">
+        <div className="flex flex-wrap gap-1">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex-shrink-0 text-xs font-medium py-3 px-3 border-b-2 transition-colors',
+                'text-xs font-medium py-3 px-3 border-b-2 transition-colors',
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >
               {tab.label}

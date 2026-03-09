@@ -18,6 +18,7 @@ type RealtimeTable = (typeof REALTIME_TABLES)[number]
 
 // Tablas con campo _synced en su schema Dexie
 const TABLES_WITH_SYNCED = new Set<RealtimeTable>([
+  'users',
   'assets',
   'incidents',
   'maintenance_plans',
