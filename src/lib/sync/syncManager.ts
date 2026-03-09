@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { networkStatus } from './networkStatus'
 import { processPending } from './syncQueue'
+import { syncBlobs } from './blobSync'
 import { pullAll } from './initialSync'
 import { startRealtime, stopRealtime } from './realtimeSync'
 import { syncLogger } from './syncLogger'
@@ -36,6 +37,7 @@ class SyncManager {
 
     try {
       await processPending()
+      await syncBlobs()
       await pullAll()
 
       await db.sync_meta.put({

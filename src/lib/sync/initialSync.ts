@@ -15,6 +15,14 @@ const SYNC_TABLES = [
 
 type SyncTable = (typeof SYNC_TABLES)[number]
 
+// Tablas sin campo updated_at en Supabase — usar created_at como timestamp incremental
+const TABLES_WITH_CREATED_AT_ONLY = new Set<SyncTable>([
+  'users',
+  'areas',
+  'asset_categories',
+  'maintenance_logs',
+])
+
 async function getLastSyncTimestamp(): Promise<string | null> {
   const meta = await db.sync_meta.get('last_sync_timestamp')
   return meta?.value ?? null
@@ -25,10 +33,11 @@ async function setLastSyncTimestamp(ts: string): Promise<void> {
 }
 
 async function pullTable(table: SyncTable, since: string | null): Promise<number> {
-  let query = supabase.from(table).select('*').order('updated_at', { ascending: true })
+  const tsField = TABLES_WITH_CREATED_AT_ONLY.has(table) ? 'created_at' : 'updated_at'
+  let query = supabase.from(table).select('*').order(tsField, { ascending: true })
 
   if (since) {
-    query = query.gt('updated_at', since)
+    query = query.gt(tsField, since)
   }
 
   const { data, error } = await query

@@ -11,6 +11,7 @@ import {
   Wifi,
   WifiOff,
   RefreshCw,
+  Settings,
 } from 'lucide-react'
 import { db } from '@/lib/db'
 import type { MaintenanceTask, Incident } from '@/lib/db'
@@ -261,6 +262,14 @@ export default function TodayPage() {
               <RefreshCw
                 className={cn('w-4 h-4 text-gray-600', isSyncing && 'animate-spin')}
               />
+            </button>
+            {/* Admin (discreto) */}
+            <button
+              onClick={() => navigate('/admin')}
+              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors md:hidden"
+              title="Administración"
+            >
+              <Settings className="w-4 h-4 text-gray-300" />
             </button>
           </div>
         </div>

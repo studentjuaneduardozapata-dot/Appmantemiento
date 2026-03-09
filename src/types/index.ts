@@ -69,7 +69,7 @@ export interface MaintenancePlanFormData {
 export interface MaintenanceTaskFormData {
   description: string
   frequency_days: number
-  next_due_date: string
+  next_due_date?: string
 }
 
 export interface AssetFormData {

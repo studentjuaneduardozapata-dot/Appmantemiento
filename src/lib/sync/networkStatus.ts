@@ -43,10 +43,14 @@ class NetworkStatus extends EventTarget {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), PING_TIMEOUT_MS)
 
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
       await fetch(this._pingUrl, {
         method: 'HEAD',
         signal: controller.signal,
         cache: 'no-store',
+        headers: anonKey
+          ? { apikey: anonKey, Authorization: `Bearer ${anonKey}` }
+          : {},
       })
 
       clearTimeout(timeoutId)

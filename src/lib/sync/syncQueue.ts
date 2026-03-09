@@ -88,6 +88,12 @@ async function pushToSupabase(
     return
   }
 
-  const { error } = await supabase.from(table).upsert(payload)
+  // Eliminar campos internos de Dexie y convertir strings vacíos a null
+  const clean = Object.fromEntries(
+    Object.entries(payload)
+      .filter(([k]) => !k.startsWith('_') && k !== 'autoId')
+      .map(([k, v]) => [k, v === '' ? null : v])
+  )
+  const { error } = await supabase.from(table).upsert(clean)
   if (error) throw new Error(error.message)
 }

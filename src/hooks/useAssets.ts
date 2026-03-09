@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { format, addDays } from 'date-fns'
 import { db, generateId } from '@/lib/db'
-import type { Asset, AssetFormData } from '@/lib/db'
+import type { Asset } from '@/lib/db'
+import type { AssetFormData } from '@/types'
 import { enqueue } from '@/lib/sync/syncQueue'
 
 // ─── Reads ─────────────────────────────────────────────────────────────────────

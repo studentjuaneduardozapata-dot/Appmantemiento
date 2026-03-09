@@ -4,6 +4,9 @@ import { supabase } from '@/integrations/supabase/client'
 import { syncLogger } from './syncLogger'
 
 const REALTIME_TABLES = [
+  'users',
+  'areas',
+  'asset_categories',
   'assets',
   'incidents',
   'maintenance_plans',
@@ -12,6 +15,15 @@ const REALTIME_TABLES = [
 ] as const
 
 type RealtimeTable = (typeof REALTIME_TABLES)[number]
+
+// Tablas con campo _synced en su schema Dexie
+const TABLES_WITH_SYNCED = new Set<RealtimeTable>([
+  'assets',
+  'incidents',
+  'maintenance_plans',
+  'maintenance_tasks',
+  'maintenance_logs',
+])
 
 let channels: RealtimeChannel[] = []
 
@@ -59,7 +71,10 @@ async function handleRealtimeChange(
 
   try {
     if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-      await dexieTable.put({ ...payload.new, _synced: true })
+      const record = TABLES_WITH_SYNCED.has(table)
+        ? { ...payload.new, _synced: true }
+        : { ...payload.new }
+      await dexieTable.put(record)
       syncLogger.debug(`Realtime ${payload.eventType}: ${table}`, payload.new)
     } else if (payload.eventType === 'DELETE') {
       const id = payload.old.id as string
