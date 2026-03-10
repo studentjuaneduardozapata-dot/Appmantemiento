@@ -62,33 +62,22 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
   return (
     <div>
       {/* Navigation */}
-      <div className="flex items-center justify-between px-4 py-2 bg-card border-b border-border">
-        <button
-          type="button"
-          onClick={() => onMonthChange(-1)}
-          className="p-1.5 text-muted-foreground hover:text-foreground"
-        >
-          <ChevronLeft className="w-5 h-5" />
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-border">
+        <button type="button" onClick={() => onMonthChange(-1)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors">
+          <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm font-semibold text-foreground capitalize">
+        <span className="text-sm font-bold text-foreground capitalize font-display tracking-wide">
           {format(month, 'MMMM yyyy', { locale: es })}
         </span>
-        <button
-          type="button"
-          onClick={() => onMonthChange(1)}
-          className="p-1.5 text-muted-foreground hover:text-foreground"
-        >
-          <ChevronRight className="w-5 h-5" />
+        <button type="button" onClick={() => onMonthChange(1)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors">
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
       {/* Day-of-week headers */}
-      <div className="grid grid-cols-7 border-b border-border">
+      <div className="grid grid-cols-7 border-b border-border bg-secondary/40">
         {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
-          <div
-            key={d}
-            className="py-1.5 text-center text-xs font-medium text-muted-foreground uppercase"
-          >
+          <div key={d} className="py-1.5 text-center gmao-mono text-muted-foreground/70">
             {d}
           </div>
         ))}
@@ -109,16 +98,16 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
                 type="button"
                 onClick={() => onDayClick(dayKey)}
                 className={cn(
-                  'min-h-[52px] p-1 flex flex-col items-center border-r border-border/50 last:border-0',
-                  !inMonth && 'opacity-30',
-                  today && 'bg-primary/10'
+                  'min-h-[52px] p-1 flex flex-col items-center border-r border-border/50 last:border-0 transition-colors hover:bg-accent/50',
+                  !inMonth && 'opacity-25',
+                  today && 'bg-primary/[0.06]'
                 )}
               >
                 <span
                   className={cn(
-                    'text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full',
+                    'gmao-mono w-6 h-6 flex items-center justify-center rounded-md text-xs',
                     today
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-primary text-white font-bold'
                       : 'text-foreground'
                   )}
                 >

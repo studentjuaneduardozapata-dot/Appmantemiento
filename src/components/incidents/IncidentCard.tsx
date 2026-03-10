@@ -9,22 +9,28 @@ const TYPE_LABELS: Record<string, string> = {
   neumatica: 'Neumática',
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  mecanica: 'bg-orange-100 text-orange-700',
-  electrica: 'bg-yellow-100 text-yellow-700',
-  neumatica: 'bg-blue-100 text-blue-700',
+const TYPE_BADGE: Record<string, string> = {
+  mecanica:  'gmao-badge gmao-badge-orange',
+  electrica: 'gmao-badge gmao-badge-amber',
+  neumatica: 'gmao-badge gmao-badge-blue',
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  abierta: 'Abierta',
+  abierta:    'Abierta',
   en_progreso: 'En progreso',
-  cerrada: 'Cerrada',
+  cerrada:    'Cerrada',
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  abierta: 'bg-red-100 text-red-700',
-  en_progreso: 'bg-amber-100 text-amber-700',
-  cerrada: 'bg-green-100 text-green-700',
+const STATUS_BADGE: Record<string, string> = {
+  abierta:    'gmao-badge gmao-badge-red',
+  en_progreso: 'gmao-badge gmao-badge-amber',
+  cerrada:    'gmao-badge gmao-badge-green',
+}
+
+const STATUS_STRIP: Record<string, string> = {
+  abierta:    'strip-red',
+  en_progreso: 'strip-amber',
+  cerrada:    'strip-green',
 }
 
 interface IncidentCardProps {
@@ -38,38 +44,34 @@ export function IncidentCard({ incident, assetName, onClick }: IncidentCardProps
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left px-4 py-3 hover:bg-accent/60 border-b border-border last:border-0"
+      className={cn(
+        'w-full text-left px-4 py-3.5 hover:bg-accent/60 border-b border-border last:border-0 transition-colors bg-white',
+        STATUS_STRIP[incident.status]
+      )}
     >
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <span className="font-medium text-sm text-foreground truncate flex-1">
+      <div className="flex items-start justify-between gap-2 mb-1.5">
+        <span className="font-semibold text-sm text-foreground truncate flex-1">
           {assetName ?? '—'}
         </span>
-        <span
-          className={cn(
-            'text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0',
-            STATUS_COLORS[incident.status]
-          )}
-        >
+        <span className={STATUS_BADGE[incident.status]}>
           {STATUS_LABELS[incident.status]}
         </span>
       </div>
+
       <div className="flex items-center gap-2 flex-wrap">
-        <span
-          className={cn(
-            'text-xs px-2 py-0.5 rounded-full font-medium',
-            TYPE_COLORS[incident.type]
-          )}
-        >
+        <span className={TYPE_BADGE[incident.type]}>
           {TYPE_LABELS[incident.type]}
         </span>
         {incident.description && (
-          <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+          <span className="text-xs text-muted-foreground truncate max-w-[200px]">
             {incident.description}
           </span>
         )}
       </div>
-      <p className="text-xs text-muted-foreground mt-1">
-        {format(new Date(incident.reported_at + 'T00:00:00'), 'dd MMM yyyy', { locale: es })} ·{' '}
+
+      <p className="gmao-mono text-muted-foreground mt-1.5 text-[11px]">
+        {format(new Date(incident.reported_at + 'T00:00:00'), 'dd MMM yyyy', { locale: es })}
+        <span className="mx-1.5 opacity-40">·</span>
         {incident.reported_by}
       </p>
     </button>

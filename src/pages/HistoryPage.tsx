@@ -115,69 +115,35 @@ export default function HistoryPage() {
       <PageHeader title="Historial" />
 
       {/* Filters */}
-      <div className="bg-card border-b border-border px-4 py-3 space-y-3">
-        {/* Type filter */}
+      <div className="bg-white border-b border-border px-4 py-3 space-y-3">
         <div className="flex gap-2">
           {(['all', 'mantenimiento', 'falla'] as TypeFilter[]).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setTypeFilter(t)}
-              className={cn(
-                'flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors',
-                typeFilter === t
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-card text-muted-foreground border-border hover:bg-accent/50'
-              )}
+              className={cn('gmao-period-btn', typeFilter === t ? 'gmao-period-btn-active' : 'gmao-period-btn-inactive')}
             >
               {t === 'all' ? 'Todo' : t === 'mantenimiento' ? 'Mantenimiento' : 'Fallas'}
             </button>
           ))}
         </div>
 
-        {/* Area + asset selects */}
         <div className="flex gap-2">
-          <select
-            value={areaFilter}
-            onChange={(e) => setAreaFilter(e.target.value)}
-            className="gmao-input-sm flex-1"
-          >
+          <select value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)} className="gmao-input-sm flex-1">
             <option value="">Todas las áreas</option>
-            {areas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
+            {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
-          <select
-            value={assetFilter}
-            onChange={(e) => setAssetFilter(e.target.value)}
-            className="gmao-input-sm flex-1"
-          >
+          <select value={assetFilter} onChange={(e) => setAssetFilter(e.target.value)} className="gmao-input-sm flex-1">
             <option value="">Todos los activos</option>
-            {assets.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
+            {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </div>
 
-        {/* Date range */}
         <div className="flex gap-2 items-center">
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="gmao-input-sm flex-1"
-          />
-          <span className="text-xs text-muted-foreground">—</span>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="gmao-input-sm flex-1"
-          />
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="gmao-input-sm flex-1" />
+          <span className="text-xs text-muted-foreground font-display">—</span>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="gmao-input-sm flex-1" />
         </div>
       </div>
 
@@ -186,46 +152,32 @@ export default function HistoryPage() {
         {data === undefined ? (
           <p className="text-center text-sm text-muted-foreground py-8">Cargando...</p>
         ) : entries.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground py-8">
-            Sin registros en el período seleccionado
-          </p>
+          <p className="text-center text-sm text-muted-foreground py-8">Sin registros en el período seleccionado</p>
         ) : (
           entries.map((entry) => (
             <div
               key={entry.id}
-              className="bg-card rounded-xl border border-border px-4 py-3"
+              className={cn('gmao-card px-4 py-3', entry.kind === 'mantenimiento' ? 'strip-green' : 'strip-orange')}
             >
               <div className="flex items-start gap-3">
-                <span
-                  className={cn(
-                    'mt-0.5 flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full',
-                    entry.kind === 'mantenimiento'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-orange-100 text-orange-700'
-                  )}
-                >
+                <span className={cn(
+                  'mt-0.5 flex-shrink-0 gmao-badge text-[9px]',
+                  entry.kind === 'mantenimiento' ? 'gmao-badge-green' : 'gmao-badge-orange'
+                )}>
                   {entry.kind === 'mantenimiento' ? 'MANT' : 'FALLA'}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground truncate">{entry.assetName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{entry.label}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{entry.assetName}</p>
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">{entry.label}</p>
                   {entry.notes && (
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{entry.notes}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 italic">{entry.notes}</p>
                   )}
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-[10px] text-muted-foreground">
-                      {format(
-                        new Date(
-                          entry.date.includes('T') ? entry.date : entry.date + 'T00:00:00'
-                        ),
-                        'dd/MM/yyyy',
-                        { locale: es }
-                      )}
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    <span className="gmao-mono text-muted-foreground">
+                      {format(new Date(entry.date.includes('T') ? entry.date : entry.date + 'T00:00:00'), 'dd/MM/yyyy', { locale: es })}
                     </span>
-                    {entry.areaName && (
-                      <span className="text-[10px] text-muted-foreground">· {entry.areaName}</span>
-                    )}
-                    <span className="text-[10px] text-muted-foreground">· {entry.who}</span>
+                    {entry.areaName && <span className="text-[10px] text-muted-foreground/60">· {entry.areaName}</span>}
+                    <span className="text-[10px] text-muted-foreground/60">· {entry.who}</span>
                   </div>
                 </div>
               </div>

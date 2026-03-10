@@ -16,16 +16,21 @@ function StatCard({
   value,
   color,
   bg,
+  accent,
 }: {
   title: string
   value: number
   color: string
   bg: string
+  accent: string
 }) {
   return (
-    <div className={cn('rounded-xl p-4 border border-border', bg)}>
-      <p className={cn('text-3xl font-bold', color)}>{value}</p>
-      <p className="text-xs text-muted-foreground mt-1 leading-tight">{title}</p>
+    <div className={cn('rounded-lg border border-border overflow-hidden shadow-card', bg)}>
+      <div className={cn('h-[3px] w-full', accent)} />
+      <div className="px-4 py-3">
+        <p className={cn('font-display text-3xl font-bold tabular-nums leading-none', color)}>{value}</p>
+        <p className="text-xs text-muted-foreground mt-1.5 leading-tight">{title}</p>
+      </div>
     </div>
   )
 }
@@ -115,19 +120,14 @@ export default function SummaryPage() {
       <PageHeader title="Resumen" />
 
       {/* Period selector */}
-      <div className="bg-card border-b border-border px-4 py-3 space-y-2">
+      <div className="bg-white border-b border-border px-4 py-3 space-y-2">
         <div className="flex gap-2">
           {(['15d', '1m', 'custom'] as Period[]).map((p) => (
             <button
               key={p}
               type="button"
               onClick={() => setPeriod(p)}
-              className={cn(
-                'flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors',
-                period === p
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-card text-muted-foreground border-border hover:bg-accent/50'
-              )}
+              className={cn('gmao-period-btn', period === p ? 'gmao-period-btn-active' : 'gmao-period-btn-inactive')}
             >
               {p === '15d' ? '15 días' : p === '1m' ? '1 mes' : 'Personalizado'}
             </button>
@@ -135,19 +135,9 @@ export default function SummaryPage() {
         </div>
         {period === 'custom' && (
           <div className="flex gap-2 items-center">
-            <input
-              type="date"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              className="gmao-input-sm flex-1"
-            />
-            <span className="text-xs text-muted-foreground">—</span>
-            <input
-              type="date"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className="gmao-input-sm flex-1"
-            />
+            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="gmao-input-sm flex-1" />
+            <span className="text-xs text-muted-foreground font-display">—</span>
+            <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="gmao-input-sm flex-1" />
           </div>
         )}
       </div>
@@ -159,57 +149,27 @@ export default function SummaryPage() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
-              <StatCard
-                title="Mantenimientos completados"
-                value={stats.totalLogs}
-                color="text-green-600"
-                bg="bg-green-50"
-              />
-              <StatCard
-                title="Fallas reportadas"
-                value={stats.incidentsReported}
-                color="text-orange-600"
-                bg="bg-orange-50"
-              />
-              <StatCard
-                title="Fallas resueltas"
-                value={stats.incidentsClosed}
-                color="text-blue-600"
-                bg="bg-blue-50"
-              />
-              <StatCard
-                title="Activos nuevos"
-                value={stats.newAssetsCount}
-                color="text-purple-600"
-                bg="bg-purple-50"
-              />
-              <StatCard
-                title="Tareas pendientes"
-                value={stats.tasksPending}
-                color="text-gray-600"
-                bg="bg-gray-100"
-              />
-              <StatCard
-                title="Tareas vencidas"
-                value={stats.tasksOverdue}
-                color="text-red-600"
-                bg="bg-red-50"
-              />
+              <StatCard title="Mantenimientos completados" value={stats.totalLogs}           color="text-green-600"  bg="bg-white" accent="bg-green-500"  />
+              <StatCard title="Fallas reportadas"          value={stats.incidentsReported}   color="text-orange-600" bg="bg-white" accent="bg-orange-500" />
+              <StatCard title="Fallas resueltas"           value={stats.incidentsClosed}     color="text-blue-600"   bg="bg-white" accent="bg-blue-500"   />
+              <StatCard title="Activos nuevos"             value={stats.newAssetsCount}      color="text-purple-600" bg="bg-white" accent="bg-purple-500" />
+              <StatCard title="Tareas pendientes"          value={stats.tasksPending}        color="text-gray-600"   bg="bg-white" accent="bg-gray-400"   />
+              <StatCard title="Tareas vencidas"            value={stats.tasksOverdue}        color="text-red-600"    bg="bg-white" accent="bg-red-500"    />
             </div>
 
             {stats.topAssets.length > 0 && (
-              <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="gmao-card">
                 <div className="px-4 py-3 border-b border-border">
                   <h2 className="gmao-section-title">Activos con más fallas</h2>
                 </div>
                 <div className="divide-y divide-border">
                   {stats.topAssets.map((a, i) => (
                     <div key={a.id} className="flex items-center justify-between px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground w-4">{i + 1}.</span>
-                        <span className="text-sm text-foreground truncate">{a.name}</span>
+                      <div className="flex items-center gap-2.5">
+                        <span className="gmao-mono text-muted-foreground w-4">{i + 1}</span>
+                        <span className="text-sm font-medium text-foreground truncate">{a.name}</span>
                       </div>
-                      <span className="text-sm font-semibold text-orange-600">{a.count}</span>
+                      <span className="font-display text-sm font-bold text-orange-600">{a.count}</span>
                     </div>
                   ))}
                 </div>
