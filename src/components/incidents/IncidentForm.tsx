@@ -91,11 +91,11 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 px-4 py-4">
       {/* Área (filtro) */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Área</label>
+        <label className="gmao-label">Área</label>
         <select
           value={filterAreaId}
           onChange={(e) => handleAreaChange(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-select"
         >
           <option value="">Todas las áreas</option>
           {areas?.map((a) => (
@@ -108,11 +108,11 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
 
       {/* Categoría (filtro) */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+        <label className="gmao-label">Categoría</label>
         <select
           value={filterCategoryId}
           onChange={(e) => handleCategoryChange(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-select"
         >
           <option value="">Todas las categorías</option>
           {availableCategories.map((c) => (
@@ -125,12 +125,12 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
 
       {/* Activo */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Activo <span className="text-red-500">*</span>
+        <label className="gmao-label">
+          Activo <span className="text-destructive">*</span>
         </label>
         <select
           {...register('asset_id')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-select"
         >
           <option value="">Seleccionar activo...</option>
           {filteredAssets.map((a) => (
@@ -140,14 +140,14 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
           ))}
         </select>
         {errors.asset_id && (
-          <p className="text-xs text-red-500 mt-1">{errors.asset_id.message}</p>
+          <p className="gmao-error">{errors.asset_id.message}</p>
         )}
       </div>
 
       {/* Tipo de falla */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tipo de falla <span className="text-red-500">*</span>
+        <label className="gmao-label mb-2">
+          Tipo de falla <span className="text-destructive">*</span>
         </label>
         <div className="grid grid-cols-3 gap-2">
           {TYPES.map((t) => (
@@ -170,13 +170,13 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
 
       {/* Quién reporta */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Quién reporta <span className="text-red-500">*</span>
+        <label className="gmao-label">
+          Quién reporta <span className="text-destructive">*</span>
         </label>
         {users && users.length > 0 ? (
           <select
             {...register('reported_by')}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+            className="gmao-select"
           >
             <option value="">Seleccionar...</option>
             {users.map((u) => (
@@ -189,30 +189,30 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
           <input
             {...register('reported_by')}
             placeholder="Nombre de quien reporta"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="gmao-input"
           />
         )}
         {errors.reported_by && (
-          <p className="text-xs text-red-500 mt-1">{errors.reported_by.message}</p>
+          <p className="gmao-error">{errors.reported_by.message}</p>
         )}
       </div>
 
       {/* Descripción */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="gmao-label">
           Descripción (opcional)
         </label>
         <textarea
           {...register('description')}
           rows={3}
           placeholder="Describe brevemente la falla..."
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="gmao-input resize-none"
         />
       </div>
 
       {/* Foto */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="gmao-label">
           Foto (opcional)
         </label>
         <ImagePicker
@@ -224,18 +224,18 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
 
       {/* Fecha */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+        <label className="gmao-label">Fecha</label>
         <input
           {...register('reported_at')}
           type="date"
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-input"
         />
       </div>
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="gmao-btn-destructive"
       >
         {isSubmitting ? 'Guardando...' : 'Reportar falla'}
       </button>

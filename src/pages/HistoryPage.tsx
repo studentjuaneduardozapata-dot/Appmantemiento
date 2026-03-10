@@ -111,11 +111,11 @@ export default function HistoryPage() {
   const assets = data?.assets ?? []
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <PageHeader title="Historial" />
 
       {/* Filters */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 space-y-3">
+      <div className="bg-card border-b border-border px-4 py-3 space-y-3">
         {/* Type filter */}
         <div className="flex gap-2">
           {(['all', 'mantenimiento', 'falla'] as TypeFilter[]).map((t) => (
@@ -126,8 +126,8 @@ export default function HistoryPage() {
               className={cn(
                 'flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors',
                 typeFilter === t
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:bg-accent/50'
               )}
             >
               {t === 'all' ? 'Todo' : t === 'mantenimiento' ? 'Mantenimiento' : 'Fallas'}
@@ -140,7 +140,7 @@ export default function HistoryPage() {
           <select
             value={areaFilter}
             onChange={(e) => setAreaFilter(e.target.value)}
-            className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700"
+            className="gmao-input-sm flex-1"
           >
             <option value="">Todas las áreas</option>
             {areas.map((a) => (
@@ -152,7 +152,7 @@ export default function HistoryPage() {
           <select
             value={assetFilter}
             onChange={(e) => setAssetFilter(e.target.value)}
-            className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700"
+            className="gmao-input-sm flex-1"
           >
             <option value="">Todos los activos</option>
             {assets.map((a) => (
@@ -169,14 +169,14 @@ export default function HistoryPage() {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700"
+            className="gmao-input-sm flex-1"
           />
-          <span className="text-xs text-gray-400">—</span>
+          <span className="text-xs text-muted-foreground">—</span>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700"
+            className="gmao-input-sm flex-1"
           />
         </div>
       </div>
@@ -184,16 +184,16 @@ export default function HistoryPage() {
       {/* List */}
       <div className="px-4 py-3 space-y-2">
         {data === undefined ? (
-          <p className="text-center text-sm text-gray-400 py-8">Cargando...</p>
+          <p className="text-center text-sm text-muted-foreground py-8">Cargando...</p>
         ) : entries.length === 0 ? (
-          <p className="text-center text-sm text-gray-400 py-8">
+          <p className="text-center text-sm text-muted-foreground py-8">
             Sin registros en el período seleccionado
           </p>
         ) : (
           entries.map((entry) => (
             <div
               key={entry.id}
-              className="bg-white rounded-xl border border-gray-200 px-4 py-3"
+              className="bg-card rounded-xl border border-border px-4 py-3"
             >
               <div className="flex items-start gap-3">
                 <span
@@ -207,13 +207,13 @@ export default function HistoryPage() {
                   {entry.kind === 'mantenimiento' ? 'MANT' : 'FALLA'}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">{entry.assetName}</p>
-                  <p className="text-xs text-gray-500 truncate">{entry.label}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{entry.assetName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{entry.label}</p>
                   {entry.notes && (
-                    <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{entry.notes}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{entry.notes}</p>
                   )}
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-[10px] text-muted-foreground">
                       {format(
                         new Date(
                           entry.date.includes('T') ? entry.date : entry.date + 'T00:00:00'
@@ -223,9 +223,9 @@ export default function HistoryPage() {
                       )}
                     </span>
                     {entry.areaName && (
-                      <span className="text-[10px] text-gray-400">· {entry.areaName}</span>
+                      <span className="text-[10px] text-muted-foreground">· {entry.areaName}</span>
                     )}
-                    <span className="text-[10px] text-gray-400">· {entry.who}</span>
+                    <span className="text-[10px] text-muted-foreground">· {entry.who}</span>
                   </div>
                 </div>
               </div>

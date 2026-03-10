@@ -23,9 +23,9 @@ function StatCard({
   bg: string
 }) {
   return (
-    <div className={cn('rounded-xl p-4 border border-gray-200', bg)}>
+    <div className={cn('rounded-xl p-4 border border-border', bg)}>
       <p className={cn('text-3xl font-bold', color)}>{value}</p>
-      <p className="text-xs text-gray-600 mt-1 leading-tight">{title}</p>
+      <p className="text-xs text-muted-foreground mt-1 leading-tight">{title}</p>
     </div>
   )
 }
@@ -111,11 +111,11 @@ export default function SummaryPage() {
   }, [dateFrom, dateTo])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <PageHeader title="Resumen" />
 
       {/* Period selector */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 space-y-2">
+      <div className="bg-card border-b border-border px-4 py-3 space-y-2">
         <div className="flex gap-2">
           {(['15d', '1m', 'custom'] as Period[]).map((p) => (
             <button
@@ -125,8 +125,8 @@ export default function SummaryPage() {
               className={cn(
                 'flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors',
                 period === p
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:bg-accent/50'
               )}
             >
               {p === '15d' ? '15 días' : p === '1m' ? '1 mes' : 'Personalizado'}
@@ -139,14 +139,14 @@ export default function SummaryPage() {
               type="date"
               value={customFrom}
               onChange={(e) => setCustomFrom(e.target.value)}
-              className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700"
+              className="gmao-input-sm flex-1"
             />
-            <span className="text-xs text-gray-400">—</span>
+            <span className="text-xs text-muted-foreground">—</span>
             <input
               type="date"
               value={customTo}
               onChange={(e) => setCustomTo(e.target.value)}
-              className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700"
+              className="gmao-input-sm flex-1"
             />
           </div>
         )}
@@ -155,7 +155,7 @@ export default function SummaryPage() {
       {/* Stats */}
       <div className="px-4 py-4 space-y-3">
         {stats === undefined ? (
-          <p className="text-center text-sm text-gray-400 py-8">Cargando...</p>
+          <p className="text-center text-sm text-muted-foreground py-8">Cargando...</p>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
@@ -198,16 +198,16 @@ export default function SummaryPage() {
             </div>
 
             {stats.topAssets.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <h2 className="text-sm font-semibold text-gray-700">Activos con más fallas</h2>
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                <div className="px-4 py-3 border-b border-border">
+                  <h2 className="gmao-section-title">Activos con más fallas</h2>
                 </div>
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-border">
                   {stats.topAssets.map((a, i) => (
                     <div key={a.id} className="flex items-center justify-between px-4 py-2.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 w-4">{i + 1}.</span>
-                        <span className="text-sm text-gray-800 truncate">{a.name}</span>
+                        <span className="text-xs text-muted-foreground w-4">{i + 1}.</span>
+                        <span className="text-sm text-foreground truncate">{a.name}</span>
                       </div>
                       <span className="text-sm font-semibold text-orange-600">{a.count}</span>
                     </div>

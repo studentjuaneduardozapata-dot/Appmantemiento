@@ -30,7 +30,7 @@ function AssetRowWithThumb({ asset, onClick }: AssetRowProps) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50 border-t border-gray-50 first:border-t-0"
+      className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-accent/50 border-t border-border first:border-t-0"
     >
       {asset.image_url && !asset.image_url.startsWith('local:') ? (
         <img
@@ -39,11 +39,11 @@ function AssetRowWithThumb({ asset, onClick }: AssetRowProps) {
           className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
         />
       ) : (
-        <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0" />
+        <div className="w-10 h-10 rounded-lg bg-muted flex-shrink-0" />
       )}
       <TrafficLight status={light} size="sm" />
-      <span className="flex-1 text-sm font-medium text-gray-900 truncate">{asset.name}</span>
-      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+      <span className="flex-1 text-sm font-medium text-foreground truncate">{asset.name}</span>
+      <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
     </button>
   )
 }
@@ -136,12 +136,12 @@ export default function AssetsPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-center text-sm text-gray-400 py-8">Cargando...</p>
+        <p className="text-center text-sm text-muted-foreground py-8">Cargando...</p>
       ) : search ? (
         /* ── Búsqueda activa: lista plana ── */
         <div className="bg-card rounded-lg border border-border mx-4 overflow-hidden">
           {assets!.length === 0 ? (
-            <p className="text-center text-sm text-gray-500 py-8">
+            <p className="text-center text-sm text-muted-foreground py-8">
               Sin resultados para tu búsqueda
             </p>
           ) : (
@@ -180,7 +180,7 @@ export default function AssetsPage() {
           <div className="px-4 pb-4">
             {groupedByCat.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-sm mb-3">Sin activos registrados</p>
+                <p className="text-muted-foreground text-sm mb-3">Sin activos registrados</p>
                 <button
                   onClick={() => navigate('/assets/new')}
                   className="text-primary text-sm font-medium hover:text-primary/80"
@@ -193,8 +193,8 @@ export default function AssetsPage() {
                 {groupedByCat.map(({ category, items }) => (
                   <AccordionItem key={category.id} value={category.id}>
                     <AccordionTrigger>
-                      <span className="text-gray-800">{category.name}</span>
-                      <span className="text-xs text-gray-400 mr-1">{items.length}</span>
+                      <span className="text-foreground">{category.name}</span>
+                      <span className="text-xs text-muted-foreground mr-1">{items.length}</span>
                     </AccordionTrigger>
                     <AccordionContent>
                       {items.map((asset) => (

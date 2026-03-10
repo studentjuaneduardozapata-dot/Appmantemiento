@@ -23,13 +23,13 @@ export function QRModal({ open, onClose, assetId, assetName }: QRModalProps) {
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
-        <Dialog.Content className="fixed z-50 bg-white rounded-xl shadow-xl p-6 w-[calc(100%-2rem)] max-w-xs left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
+        <Dialog.Content className="fixed z-50 bg-card rounded-xl shadow-xl p-6 w-[calc(100%-2rem)] max-w-xs left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
           <div className="flex items-center justify-between w-full">
-            <Dialog.Title className="font-semibold text-gray-900 text-base">
+            <Dialog.Title className="font-semibold text-foreground text-base">
               Código QR
             </Dialog.Title>
             <Dialog.Close asChild>
-              <button type="button" className="p-1 text-gray-400 hover:text-gray-600">
+              <button type="button" className="p-1 text-muted-foreground hover:text-foreground">
                 <X className="w-5 h-5" />
               </button>
             </Dialog.Close>
@@ -42,19 +42,19 @@ export function QRModal({ open, onClose, assetId, assetName }: QRModalProps) {
               className="w-56 h-56"
             />
           ) : (
-            <div className="w-56 h-56 flex items-center justify-center bg-gray-100 rounded">
-              <p className="text-sm text-gray-400">Generando...</p>
+            <div className="w-56 h-56 flex items-center justify-center bg-muted rounded">
+              <p className="text-sm text-muted-foreground">Generando...</p>
             </div>
           )}
 
-          <p className="text-sm font-medium text-gray-700 text-center">{assetName}</p>
-          <p className="text-xs text-gray-400 text-center break-all">{assetId}</p>
+          <p className="text-sm font-medium text-foreground text-center">{assetName}</p>
+          <p className="text-xs text-muted-foreground text-center break-all">{assetId}</p>
 
           <div className="flex gap-3 w-full">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              className="gmao-btn-secondary flex-1 py-2"
             >
               Cerrar
             </button>
@@ -62,7 +62,7 @@ export function QRModal({ open, onClose, assetId, assetName }: QRModalProps) {
               <button
                 type="button"
                 onClick={() => printQR(assetId, assetName, dataUrl)}
-                className="flex-1 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 flex items-center justify-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
                 Imprimir

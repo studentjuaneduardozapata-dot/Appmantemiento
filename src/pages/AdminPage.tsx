@@ -148,11 +148,11 @@ function UsersTab() {
 
   return (
     <div className="space-y-2">
-      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-gray-100">
+      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-border">
         {users === undefined ? (
-          <p className="text-center text-sm text-gray-400 py-6">Cargando...</p>
+          <p className="text-center text-sm text-muted-foreground py-6">Cargando...</p>
         ) : users.length === 0 && !addingNew ? (
-          <p className="text-center text-sm text-gray-400 py-6">Sin usuarios</p>
+          <p className="text-center text-sm text-muted-foreground py-6">Sin usuarios</p>
         ) : (
           <>
             {users.map((u) =>
@@ -163,7 +163,7 @@ function UsersTab() {
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(u.id)}
-                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="gmao-input-sm flex-1"
                   />
                   <button
                     type="button"
@@ -175,14 +175,14 @@ function UsersTab() {
                   <button
                     type="button"
                     onClick={() => setEditingId(null)}
-                    className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-lg"
+                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
                 <div key={u.id} className="flex items-center justify-between px-4 py-2.5">
-                  <span className="text-sm text-gray-800">{u.name}</span>
+                  <span className="text-sm text-foreground">{u.name}</span>
                   <div className="flex gap-1">
                     <button
                       type="button"
@@ -197,7 +197,7 @@ function UsersTab() {
                     <button
                       type="button"
                       onClick={() => setDeleteTarget(u)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -213,7 +213,7 @@ function UsersTab() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="gmao-input-sm flex-1"
                 />
                 <button
                   type="button"
@@ -225,7 +225,7 @@ function UsersTab() {
                 <button
                   type="button"
                   onClick={() => setAddingNew(false)}
-                  className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-lg"
+                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -331,11 +331,11 @@ function AreasTab() {
 
   return (
     <div className="space-y-2">
-      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-gray-100">
+      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-border">
         {areas === undefined ? (
-          <p className="text-center text-sm text-gray-400 py-6">Cargando...</p>
+          <p className="text-center text-sm text-muted-foreground py-6">Cargando...</p>
         ) : areas.length === 0 && !addingNew ? (
-          <p className="text-center text-sm text-gray-400 py-6">Sin áreas</p>
+          <p className="text-center text-sm text-muted-foreground py-6">Sin áreas</p>
         ) : (
           <>
             {areas.map((a, idx) =>
@@ -346,14 +346,14 @@ function AreasTab() {
                     placeholder="Código"
                     value={editCode}
                     onChange={(e) => setEditCode(e.target.value)}
-                    className="w-20 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="gmao-input-sm w-20"
                   />
                   <input
                     placeholder="Nombre"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(a.id)}
-                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="gmao-input-sm flex-1"
                   />
                   <button
                     type="button"
@@ -365,7 +365,7 @@ function AreasTab() {
                   <button
                     type="button"
                     onClick={() => setEditingId(null)}
-                    className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-lg"
+                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -373,15 +373,15 @@ function AreasTab() {
               ) : (
                 <div key={a.id} className="flex items-center justify-between px-4 py-2.5">
                   <div>
-                    <span className="text-xs text-gray-400 mr-2">{a.code}</span>
-                    <span className="text-sm text-gray-800">{a.name}</span>
+                    <span className="text-xs text-muted-foreground mr-2">{a.code}</span>
+                    <span className="text-sm text-foreground">{a.name}</span>
                   </div>
                   <div className="flex gap-1">
                     <button
                       type="button"
                       onClick={() => handleReorder(a, -1)}
                       disabled={idx === 0}
-                      className="p-1 text-gray-400 disabled:opacity-30 hover:text-gray-600"
+                      className="p-1 text-muted-foreground disabled:opacity-30 hover:text-foreground"
                     >
                       <ChevronUp className="w-3.5 h-3.5" />
                     </button>
@@ -389,7 +389,7 @@ function AreasTab() {
                       type="button"
                       onClick={() => handleReorder(a, 1)}
                       disabled={areas !== undefined && idx === areas.length - 1}
-                      className="p-1 text-gray-400 disabled:opacity-30 hover:text-gray-600"
+                      className="p-1 text-muted-foreground disabled:opacity-30 hover:text-foreground"
                     >
                       <ChevronDown className="w-3.5 h-3.5" />
                     </button>
@@ -407,7 +407,7 @@ function AreasTab() {
                     <button
                       type="button"
                       onClick={() => setDeleteTarget(a)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -422,14 +422,14 @@ function AreasTab() {
                   placeholder="Código"
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value)}
-                  className="w-20 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="gmao-input-sm w-20"
                 />
                 <input
                   placeholder="Nombre del área"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="gmao-input-sm flex-1"
                 />
                 <button
                   type="button"
@@ -441,7 +441,7 @@ function AreasTab() {
                 <button
                   type="button"
                   onClick={() => setAddingNew(false)}
-                  className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-lg"
+                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -526,11 +526,11 @@ function CategoriesTab() {
 
   return (
     <div className="space-y-2">
-      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-gray-100">
+      <div className="bg-card rounded-xl border border-border overflow-hidden divide-y divide-border">
         {cats === undefined ? (
-          <p className="text-center text-sm text-gray-400 py-6">Cargando...</p>
+          <p className="text-center text-sm text-muted-foreground py-6">Cargando...</p>
         ) : cats.length === 0 && !addingNew ? (
-          <p className="text-center text-sm text-gray-400 py-6">Sin categorías</p>
+          <p className="text-center text-sm text-muted-foreground py-6">Sin categorías</p>
         ) : (
           <>
             {cats.map((c) =>
@@ -541,7 +541,7 @@ function CategoriesTab() {
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(c.id)}
-                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="gmao-input-sm flex-1"
                   />
                   <button
                     type="button"
@@ -553,14 +553,14 @@ function CategoriesTab() {
                   <button
                     type="button"
                     onClick={() => setEditingId(null)}
-                    className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-lg"
+                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
                 <div key={c.id} className="flex items-center justify-between px-4 py-2.5">
-                  <span className="text-sm text-gray-800">{c.name}</span>
+                  <span className="text-sm text-foreground">{c.name}</span>
                   <div className="flex gap-1">
                     <button
                       type="button"
@@ -575,7 +575,7 @@ function CategoriesTab() {
                     <button
                       type="button"
                       onClick={() => setDeleteTarget(c)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -591,7 +591,7 @@ function CategoriesTab() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="gmao-input-sm flex-1"
                 />
                 <button
                   type="button"
@@ -603,7 +603,7 @@ function CategoriesTab() {
                 <button
                   type="button"
                   onClick={() => setAddingNew(false)}
-                  className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-lg"
+                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -662,7 +662,7 @@ function PinTab() {
     <div className="bg-card rounded-xl border border-border p-4 space-y-4">
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label className="block text-xs font-medium text-foreground mb-1">
             Nuevo PIN (4 dígitos)
           </label>
           <input
@@ -675,11 +675,11 @@ function PinTab() {
               setErrorMsg('')
             }}
             placeholder="••••"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest"
+            className="gmao-input text-center tracking-widest"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Confirmar PIN</label>
+          <label className="block text-xs font-medium text-foreground mb-1">Confirmar PIN</label>
           <input
             type="password"
             inputMode="numeric"
@@ -690,10 +690,10 @@ function PinTab() {
               setErrorMsg('')
             }}
             placeholder="••••"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest"
+            className="gmao-input text-center tracking-widest"
           />
         </div>
-        {errorMsg && <p className="text-xs text-red-600">{errorMsg}</p>}
+        {errorMsg && <p className="gmao-error">{errorMsg}</p>}
       </div>
       <button
         type="button"
@@ -723,8 +723,8 @@ function DataTab() {
   return (
     <div className="bg-card rounded-xl border border-border p-4 space-y-4">
       <div>
-        <p className="text-sm font-medium text-gray-900 mb-1">Limpiar cache local</p>
-        <p className="text-xs text-gray-500">
+        <p className="gmao-section-title mb-1">Limpiar cache local</p>
+        <p className="text-xs text-muted-foreground">
           Elimina todos los datos locales (activos, fallas, tareas, etc.) excepto la configuración
           del sistema. Los datos sincronizados con el servidor se recuperarán al reconectar.
         </p>
@@ -732,7 +732,7 @@ function DataTab() {
       <button
         type="button"
         onClick={() => setConfirmOpen(true)}
-        className="w-full py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700"
+        className="w-full py-2.5 bg-destructive text-destructive-foreground text-sm font-medium rounded-xl hover:bg-destructive/90"
       >
         Limpiar base de datos local
       </button>

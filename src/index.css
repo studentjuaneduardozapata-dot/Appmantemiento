@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,11 +9,20 @@
     /* ═══════════════════════════════════════════════════
        DESIGN TOKENS — Edita aquí para cambiar el tema
        ═══════════════════════════════════════════════════ */
-    --bg-main:     #f8f8f8;   /* fondo principal de la app */
+    --bg-main:     #f5f6f8;   /* fondo principal de la app */
     --bg-header:   #18181b;   /* sidebar y barra superior  */
     --text-main:   #18181b;   /* texto principal           */
     --text-header: #e4e4e7;   /* texto en sidebar / header */
     --primary:     #6ab04c;   /* verde GMAO                */
+
+    /* Nav */
+    --nav-inactive:        #a1a1aa;   /* zinc-400 — items inactivos */
+
+    /* Surface elevation */
+    --surface:             #ffffff;   /* superficie elevada sobre bg-main */
+
+    /* Shadow */
+    --shadow-card:         0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07);
 
     /* ═══════════════════════════════════════════════════
        SHADCN / TAILWIND — mapeados a los tokens
@@ -23,37 +32,37 @@
     --background:              var(--bg-main);
     --foreground:              var(--text-main);
 
-    /* Card */
-    --card:                    #f8f8f8;
-    --card-foreground:         #3f3f46;
+    /* Card — blanco sobre fondo gris para elevación real */
+    --card:                    #ffffff;
+    --card-foreground:         #18181b;
 
     /* Popover */
-    --popover:                 #f5f5f5;
+    --popover:                 #ffffff;
     --popover-foreground:      #1a1a1a;
 
     /* Primary */
     --primary-foreground:      var(--text-header);
 
     /* Secondary */
-    --secondary:               #f8f8f8;
+    --secondary:               #f1f1f3;
     --secondary-foreground:    #27272a;
 
     /* Muted */
-    --muted:                   #e4e4e4;
-    --muted-foreground:        #757575;
+    --muted:                   #e8e8ea;
+    --muted-foreground:        #71717a;
 
     /* Accent */
-    --accent:                  #d4d4d4;
+    --accent:                  #e8e8ea;
     --accent-foreground:       var(--text-main);
 
     /* Destructive */
     --destructive:             #d12323;
-    --destructive-foreground:  var(--bg-main);
+    --destructive-foreground:  #ffffff;
 
     /* Border / Input / Ring */
-    --border:                  #e0e0e0;
-    --input:                   var(--bg-main);
-    --ring:                    #52525b;
+    --border:                  #e2e3e8;
+    --input:                   #ffffff;
+    --ring:                    var(--primary);   /* focus ring verde GMAO */
 
     --radius: 0.5rem;
 
@@ -77,7 +86,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -96,3 +105,104 @@ html, body {
 /* Ocultar scrollbar manteniendo scroll funcional */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Utility classes GMAO ───────────────────────────────────────────────── */
+
+@layer components {
+  /* Input unificado — reemplaza 8+ variantes de border-gray-200 rounded-lg */
+  .gmao-input {
+    @apply w-full px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground
+           placeholder:text-muted-foreground
+           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Variante compacta para filtros y campos en tabla */
+  .gmao-input-sm {
+    @apply px-2.5 py-1.5 text-xs border border-border rounded-lg bg-input text-foreground
+           placeholder:text-muted-foreground
+           focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent
+           disabled:opacity-50;
+  }
+
+  /* Select — igual a gmao-input para elementos <select> */
+  .gmao-select {
+    @apply w-full px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground
+           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Etiqueta de campo de formulario */
+  .gmao-label {
+    @apply block text-sm font-medium text-foreground mb-1;
+  }
+
+  /* Mensaje de error de validación */
+  .gmao-error {
+    @apply text-xs text-destructive mt-1;
+  }
+
+  /* Botón CTA primario — ancho completo */
+  .gmao-btn-primary {
+    @apply w-full py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-lg
+           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    &:not(:disabled):hover { filter: brightness(0.92); }
+  }
+
+  /* Botón CTA destructivo — falla, eliminación */
+  .gmao-btn-destructive {
+    @apply w-full py-3 bg-destructive text-destructive-foreground text-sm font-semibold rounded-lg
+           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    &:not(:disabled):hover { filter: brightness(0.92); }
+  }
+
+  /* Botón secundario / cancelar */
+  .gmao-btn-secondary {
+    @apply px-4 py-2 text-sm font-medium text-foreground bg-muted rounded-lg transition-colors;
+    &:hover { filter: brightness(0.95); }
+  }
+
+  /* Fila de lista clickeable con separador */
+  .gmao-list-row {
+    @apply w-full text-left flex items-center gap-3 px-4 py-3
+           border-b border-border last:border-0 transition-colors;
+    &:hover { background-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+  }
+
+  /* Tarjeta con elevación sutil */
+  .gmao-card {
+    @apply bg-card border border-border rounded-xl overflow-hidden;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Título de sección dentro de páginas */
+  .gmao-section-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  /* Tab individual */
+  .gmao-tab {
+    @apply flex-1 min-w-[80px] py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors;
+  }
+
+  .gmao-tab-active {
+    @apply border-primary text-primary;
+  }
+
+  .gmao-tab-inactive {
+    @apply border-transparent text-muted-foreground hover:text-foreground;
+  }
+
+  /* Toggle de período (historial, resumen) */
+  .gmao-period-btn {
+    @apply flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors;
+  }
+
+  .gmao-period-btn-active {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
+
+  .gmao-period-btn-inactive {
+    @apply bg-input text-foreground border-border hover:bg-accent;
+  }
+}

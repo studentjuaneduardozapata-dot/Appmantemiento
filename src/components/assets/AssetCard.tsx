@@ -17,16 +17,16 @@ export function AssetCard({ asset, areaName, categoryName, onClick }: AssetCardP
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-0"
+      className="gmao-list-row"
     >
       <TrafficLight status={light} />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">{asset.name}</p>
-        <p className="text-xs text-gray-500 truncate">
+        <p className="text-sm font-medium text-foreground truncate">{asset.name}</p>
+        <p className="text-xs text-muted-foreground truncate">
           {categoryName} · {areaName}
         </p>
       </div>
-      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+      <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
     </button>
   )
 }

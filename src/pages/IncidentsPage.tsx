@@ -33,8 +33,7 @@ export default function IncidentsPage() {
         action={
           <button
             onClick={() => navigate('/incidents/new')}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-white text-sm font-medium rounded-lg transition-colors hover:opacity-90"
-            style={{ backgroundColor: '#d12323' }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-destructive-foreground text-sm font-medium rounded-lg hover:bg-destructive/90 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Nueva
@@ -69,8 +68,7 @@ export default function IncidentsPage() {
             <p className="text-muted-foreground text-sm mb-3">Sin fallas en esta categoría</p>
             <button
               onClick={() => navigate('/incidents/new')}
-              className="text-sm font-medium transition-colors hover:opacity-80"
-              style={{ color: '#d12323' }}
+              className="text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
             >
               Reportar falla
             </button>

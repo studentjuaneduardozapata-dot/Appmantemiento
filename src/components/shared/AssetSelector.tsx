@@ -47,30 +47,30 @@ export function AssetSelector({
       <Dialog.Trigger asChild>
         <button
           type="button"
-          className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full flex items-center justify-between px-3 py-2 text-sm border border-border rounded-lg bg-input hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <span className={selected ? 'text-gray-900' : 'text-gray-400'}>
+          <span className={selected ? 'text-foreground' : 'text-muted-foreground'}>
             {selected ? selected.name : placeholder}
           </span>
-          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
         </button>
       </Dialog.Trigger>
 
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
-        <Dialog.Content className="fixed inset-x-4 top-16 bottom-16 z-50 bg-white rounded-xl shadow-xl flex flex-col overflow-hidden md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[400px]">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <Dialog.Title className="font-semibold text-gray-900">
+        <Dialog.Content className="fixed inset-x-4 top-16 bottom-16 z-50 bg-card rounded-xl shadow-xl flex flex-col overflow-hidden md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[400px]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <Dialog.Title className="font-semibold text-foreground">
               Seleccionar activo
             </Dialog.Title>
             <Dialog.Close asChild>
-              <button type="button" className="p-1 text-gray-400 hover:text-gray-600">
+              <button type="button" className="p-1 text-muted-foreground hover:text-foreground">
                 <X className="w-5 h-5" />
               </button>
             </Dialog.Close>
           </div>
 
-          <div className="px-4 py-2 border-b border-gray-100">
+          <div className="px-4 py-2 border-b border-border">
             <SearchInput
               value={search}
               onChange={setSearch}
@@ -80,7 +80,7 @@ export function AssetSelector({
 
           <div className="flex-1 overflow-y-auto">
             {filtered?.length === 0 ? (
-              <p className="text-center text-sm text-gray-400 py-8">
+              <p className="text-center text-sm text-muted-foreground py-8">
                 Sin resultados
               </p>
             ) : (
@@ -89,9 +89,9 @@ export function AssetSelector({
                   key={asset.id}
                   type="button"
                   onClick={() => select(asset.id)}
-                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                  className="gmao-list-row px-4 py-3 text-sm"
                 >
-                  <span className="font-medium text-gray-900">{asset.name}</span>
+                  <span className="font-medium text-foreground">{asset.name}</span>
                 </button>
               ))
             )}

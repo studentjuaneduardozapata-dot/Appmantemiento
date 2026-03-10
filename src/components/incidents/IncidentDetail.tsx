@@ -71,7 +71,7 @@ export function IncidentDetail({
       </div>
 
       {/* Info */}
-      <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+      <div className="bg-card rounded-lg border border-border divide-y divide-border">
         <DetailRow label="Activo" value={assetName ?? '—'} />
         <DetailRow label="Reportado por" value={incident.reported_by} />
         <DetailRow
@@ -100,7 +100,7 @@ export function IncidentDetail({
 
       {/* Foto */}
       {photoSrc && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
           <img
             src={photoSrc}
             alt="Evidencia"
@@ -110,8 +110,8 @@ export function IncidentDetail({
       )}
 
       {/* Cambio de estado */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
-        <p className="text-sm font-medium text-gray-700">Cambiar estado</p>
+      <div className="bg-card rounded-lg border border-border p-4 space-y-3">
+        <p className="gmao-section-title">Cambiar estado</p>
         <div className="flex gap-2">
           {STATUS_OPTIONS.map((opt) => (
             <button
@@ -121,8 +121,8 @@ export function IncidentDetail({
               className={cn(
                 'flex-1 py-2 text-xs font-medium rounded-lg border transition-colors',
                 selectedStatus === opt.value
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:border-primary'
               )}
             >
               {opt.label}
@@ -132,7 +132,7 @@ export function IncidentDetail({
 
         {selectedStatus === 'cerrada' && (
           <div>
-            <label className="block text-xs text-gray-500 mb-1">
+            <label className="block text-xs text-muted-foreground mb-1">
               Tiempo de resolución (opcional)
             </label>
             <input
@@ -140,7 +140,7 @@ export function IncidentDetail({
               value={resolutionTime}
               onChange={(e) => setResolutionTime(e.target.value)}
               placeholder="Ej: 2 horas 30 minutos"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="gmao-input"
             />
           </div>
         )}
@@ -150,7 +150,7 @@ export function IncidentDetail({
             type="button"
             onClick={handleSaveStatus}
             disabled={saving}
-            className="w-full py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="gmao-btn-primary py-2"
           >
             {saving ? 'Guardando...' : 'Guardar estado'}
           </button>
@@ -163,8 +163,8 @@ export function IncidentDetail({
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between px-4 py-2.5 gap-3">
-      <span className="text-sm text-gray-500 flex-shrink-0">{label}</span>
-      <span className="text-sm font-medium text-gray-900 text-right">{value}</span>
+      <span className="text-sm text-muted-foreground flex-shrink-0">{label}</span>
+      <span className="text-sm font-medium text-foreground text-right">{value}</span>
     </div>
   )
 }

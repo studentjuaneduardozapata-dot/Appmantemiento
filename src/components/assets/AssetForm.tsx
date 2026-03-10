@@ -60,7 +60,7 @@ export function AssetForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 px-4 py-4">
       {/* Foto */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
+        <label className="gmao-label">Foto</label>
         <Controller
           control={control}
           name="image_url"
@@ -76,27 +76,27 @@ export function AssetForm({
 
       {/* Nombre */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Nombre <span className="text-red-500">*</span>
+        <label className="gmao-label">
+          Nombre <span className="text-destructive">*</span>
         </label>
         <input
           {...register('name')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-input"
           placeholder="Ej: Ensacadora 1"
         />
         {errors.name && (
-          <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+          <p className="gmao-error">{errors.name.message}</p>
         )}
       </div>
 
       {/* Categoría */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Categoría <span className="text-red-500">*</span>
+        <label className="gmao-label">
+          Categoría <span className="text-destructive">*</span>
         </label>
         <select
           {...register('category_id')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-select"
         >
           <option value="">Seleccionar...</option>
           {categories?.map((c) => (
@@ -106,18 +106,18 @@ export function AssetForm({
           ))}
         </select>
         {errors.category_id && (
-          <p className="text-xs text-red-500 mt-1">{errors.category_id.message}</p>
+          <p className="gmao-error">{errors.category_id.message}</p>
         )}
       </div>
 
       {/* Área */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Área <span className="text-red-500">*</span>
+        <label className="gmao-label">
+          Área <span className="text-destructive">*</span>
         </label>
         <select
           {...register('area_id')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-select"
         >
           <option value="">Seleccionar...</option>
           {areas?.map((a) => (
@@ -127,13 +127,13 @@ export function AssetForm({
           ))}
         </select>
         {errors.area_id && (
-          <p className="text-xs text-red-500 mt-1">{errors.area_id.message}</p>
+          <p className="gmao-error">{errors.area_id.message}</p>
         )}
       </div>
 
       {/* Activo padre */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="gmao-label">
           Activo padre (opcional)
         </label>
         <Controller
@@ -152,10 +152,10 @@ export function AssetForm({
 
       {/* Estado */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+        <label className="gmao-label">Estado</label>
         <select
           {...register('status')}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-select"
         >
           <option value="operativo">Operativo</option>
           <option value="en_mantenimiento">En mantenimiento</option>
@@ -165,7 +165,7 @@ export function AssetForm({
 
       {/* Especificaciones */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="gmao-label mb-2">
           Especificaciones técnicas
         </label>
         <Controller
@@ -180,7 +180,7 @@ export function AssetForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="gmao-btn-primary"
       >
         {isSubmitting ? 'Guardando...' : submitLabel}
       </button>

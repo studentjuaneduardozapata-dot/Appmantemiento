@@ -66,28 +66,28 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
         <button
           type="button"
           onClick={() => onMonthChange(-1)}
-          className="p-1.5 text-gray-500 hover:text-gray-700"
+          className="p-1.5 text-muted-foreground hover:text-foreground"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="text-sm font-semibold text-gray-800 capitalize">
+        <span className="text-sm font-semibold text-foreground capitalize">
           {format(month, 'MMMM yyyy', { locale: es })}
         </span>
         <button
           type="button"
           onClick={() => onMonthChange(1)}
-          className="p-1.5 text-gray-500 hover:text-gray-700"
+          className="p-1.5 text-muted-foreground hover:text-foreground"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
       {/* Day-of-week headers */}
-      <div className="grid grid-cols-7 border-b border-gray-100">
+      <div className="grid grid-cols-7 border-b border-border">
         {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
           <div
             key={d}
-            className="py-1.5 text-center text-xs font-medium text-gray-400 uppercase"
+            className="py-1.5 text-center text-xs font-medium text-muted-foreground uppercase"
           >
             {d}
           </div>
@@ -96,7 +96,7 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
 
       {/* Calendar grid */}
       {weeks.map((week, wi) => (
-        <div key={wi} className="grid grid-cols-7 border-b border-gray-100 last:border-0">
+        <div key={wi} className="grid grid-cols-7 border-b border-border last:border-0">
           {week.map((day) => {
             const dayKey = format(day, 'yyyy-MM-dd')
             const dayTasks = tasksByDay.get(dayKey) ?? []
@@ -109,7 +109,7 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
                 type="button"
                 onClick={() => onDayClick(dayKey)}
                 className={cn(
-                  'min-h-[52px] p-1 flex flex-col items-center border-r border-gray-50 last:border-0',
+                  'min-h-[52px] p-1 flex flex-col items-center border-r border-border/50 last:border-0',
                   !inMonth && 'opacity-30',
                   today && 'bg-primary/10'
                 )}
@@ -119,7 +119,7 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
                     'text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full',
                     today
                       ? 'bg-primary text-primary-foreground'
-                      : 'text-gray-700'
+                      : 'text-foreground'
                   )}
                 >
                   {format(day, 'd')}
@@ -137,7 +137,7 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
                       />
                     ))}
                     {dayTasks.length > 4 && (
-                      <span className="text-[9px] text-gray-400 leading-none">
+                      <span className="text-[9px] text-muted-foreground leading-none">
                         +{dayTasks.length - 4}
                       </span>
                     )}

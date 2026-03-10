@@ -40,20 +40,20 @@ export function TaskRow({ task, plan, showPlanTitle }: TaskRowProps) {
     <>
       <div
         className={cn(
-          'flex items-start gap-3 px-4 py-3 border-b border-gray-100 last:border-0',
+          'flex items-start gap-3 px-4 py-3 border-b border-border last:border-0',
           isCompleted && 'opacity-60'
         )}
       >
         <div className="flex-1 min-w-0">
           {showPlanTitle && (
-            <p className="text-xs text-blue-600 font-medium mb-0.5 truncate">
+            <p className="text-xs text-primary font-medium mb-0.5 truncate">
               {plan.title}
             </p>
           )}
-          <p className="text-sm text-gray-900">{task.description}</p>
+          <p className="text-sm text-foreground">{task.description}</p>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={cn('text-xs font-medium', color)}>{label}</span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted-foreground">
               cada {task.frequency_days} días
             </span>
             <span

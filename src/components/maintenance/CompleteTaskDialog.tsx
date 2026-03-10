@@ -50,34 +50,34 @@ export function CompleteTaskDialog({
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
-        <Dialog.Content className="fixed z-50 bg-white rounded-xl shadow-xl p-5 w-[calc(100%-2rem)] max-w-sm left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <Dialog.Content className="fixed z-50 bg-card rounded-xl shadow-xl p-5 w-[calc(100%-2rem)] max-w-sm left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <div className="flex items-center justify-between mb-4">
-            <Dialog.Title className="font-semibold text-gray-900">
+            <Dialog.Title className="font-semibold text-foreground">
               Completar tarea
             </Dialog.Title>
             <Dialog.Close asChild>
-              <button type="button" className="p-1 text-gray-400 hover:text-gray-600">
+              <button type="button" className="p-1 text-muted-foreground hover:text-foreground">
                 <X className="w-5 h-5" />
               </button>
             </Dialog.Close>
           </div>
 
-          <p className="text-sm text-gray-600 mb-4 bg-gray-50 rounded-lg px-3 py-2">
+          <p className="text-sm text-muted-foreground mb-4 bg-muted rounded-lg px-3 py-2">
             {task.description}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Quién completó */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Completado por <span className="text-red-500">*</span>
+              <label className="gmao-label">
+                Completado por <span className="text-destructive">*</span>
               </label>
               {users && users.length > 0 ? (
                 <select
                   value={completedBy}
                   onChange={(e) => setCompletedBy(e.target.value)}
                   required
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="gmao-select"
                 >
                   <option value="">Seleccionar...</option>
                   {users.map((u) => (
@@ -93,27 +93,27 @@ export function CompleteTaskDialog({
                   onChange={(e) => setCompletedBy(e.target.value)}
                   required
                   placeholder="Nombre"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="gmao-input"
                 />
               )}
             </div>
 
             {/* Fecha */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="gmao-label">
                 Fecha de ejecución
               </label>
               <input
                 type="date"
                 value={completedAt}
                 onChange={(e) => setCompletedAt(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="gmao-input"
               />
             </div>
 
             {/* Notas */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="gmao-label">
                 Notas (opcional)
               </label>
               <textarea
@@ -121,7 +121,7 @@ export function CompleteTaskDialog({
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
                 placeholder="Observaciones..."
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="gmao-input resize-none"
               />
             </div>
 

@@ -38,10 +38,10 @@ export function IncidentCard({ incident, assetName, onClick }: IncidentCardProps
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-0"
+      className="w-full text-left px-4 py-3 hover:bg-accent/60 border-b border-border last:border-0"
     >
       <div className="flex items-start justify-between gap-2 mb-1">
-        <span className="font-medium text-sm text-gray-900 truncate flex-1">
+        <span className="font-medium text-sm text-foreground truncate flex-1">
           {assetName ?? '—'}
         </span>
         <span
@@ -63,12 +63,12 @@ export function IncidentCard({ incident, assetName, onClick }: IncidentCardProps
           {TYPE_LABELS[incident.type]}
         </span>
         {incident.description && (
-          <span className="text-xs text-gray-500 truncate max-w-[180px]">
+          <span className="text-xs text-muted-foreground truncate max-w-[180px]">
             {incident.description}
           </span>
         )}
       </div>
-      <p className="text-xs text-gray-400 mt-1">
+      <p className="text-xs text-muted-foreground mt-1">
         {format(new Date(incident.reported_at + 'T00:00:00'), 'dd MMM yyyy', { locale: es })} ·{' '}
         {incident.reported_by}
       </p>

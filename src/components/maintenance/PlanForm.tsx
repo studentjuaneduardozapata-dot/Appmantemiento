@@ -100,42 +100,42 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5 px-4 py-4">
       {/* Título */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Título <span className="text-red-500">*</span>
+        <label className="gmao-label">
+          Título <span className="text-destructive">*</span>
         </label>
         <input
           {...register('title')}
           placeholder="Ej: Mantenimiento preventivo ensacadora"
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="gmao-input"
         />
         {errors.title && (
-          <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>
+          <p className="gmao-error">{errors.title.message}</p>
         )}
       </div>
 
       {/* Descripción */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="gmao-label">
           Descripción (opcional)
         </label>
         <textarea
           {...register('description')}
           rows={2}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          className="gmao-input resize-none"
         />
       </div>
 
       {/* Tipo */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tipo <span className="text-red-500">*</span>
+        <label className="gmao-label mb-2">
+          Tipo <span className="text-destructive">*</span>
         </label>
         <div className="flex gap-3">
           {([['preventivo', 'Preventivo (recurrente)'], ['unico', 'Único (una sola vez)']] as const).map(
             ([val, lbl]) => (
               <label key={val} className="flex-1 flex items-center gap-2 cursor-pointer">
                 <input {...register('type')} type="radio" value={val} className="accent-primary" />
-                <span className="text-sm text-gray-700">{lbl}</span>
+                <span className="text-sm text-foreground">{lbl}</span>
               </label>
             )
           )}
@@ -144,8 +144,8 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
 
       {/* Activos asociados con cascada */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Activos asociados <span className="text-red-500">*</span>
+        <label className="gmao-label mb-2">
+          Activos asociados <span className="text-destructive">*</span>
         </label>
 
         {/* Filtros Área / Categoría */}
@@ -153,7 +153,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
           <select
             value={filterAreaId}
             onChange={(e) => handleAreaChange(e.target.value)}
-            className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            className="gmao-input-sm flex-1"
           >
             <option value="">Todas las áreas</option>
             {areas?.map((a) => (
@@ -165,7 +165,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
           <select
             value={filterCategoryId}
             onChange={(e) => setFilterCategoryId(e.target.value)}
-            className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            className="gmao-input-sm flex-1"
           >
             <option value="">Todas las categorías</option>
             {availableCategories.map((c) => (
@@ -180,16 +180,16 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
           control={control}
           name="asset_ids"
           render={({ field }) => (
-            <div className="space-y-1 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
+            <div className="space-y-1 max-h-48 overflow-y-auto border border-border rounded-lg p-2">
               {visibleAssets.length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-2">
+                <p className="text-xs text-muted-foreground text-center py-2">
                   Sin activos en esta selección
                 </p>
               )}
               {visibleAssets.map((asset) => (
                 <label
                   key={asset.id}
-                  className="flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-accent/50 cursor-pointer"
                 >
                   <input
                     type="checkbox"
@@ -197,14 +197,14 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
                     onChange={() => toggleAsset(asset.id, field.value, field.onChange)}
                     className="accent-primary"
                   />
-                  <span className="text-sm text-gray-800">{asset.name}</span>
+                  <span className="text-sm text-foreground">{asset.name}</span>
                 </label>
               ))}
             </div>
           )}
         />
         {errors.asset_ids && (
-          <p className="text-xs text-red-500 mt-1">{errors.asset_ids.message}</p>
+          <p className="gmao-error">{errors.asset_ids.message}</p>
         )}
         {selectedAssetIds.length > 0 && (
           <p className="text-xs text-primary mt-1">
@@ -215,8 +215,8 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
 
       {/* Tareas */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tareas <span className="text-red-500">*</span>
+        <label className="gmao-label mb-2">
+          Tareas <span className="text-destructive">*</span>
         </label>
         <div className="space-y-2">
           {fields.map((field, index) => (
@@ -225,22 +225,22 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
                 <input
                   {...register(`tasks.${index}.description`)}
                   placeholder="Descripción de la tarea"
-                  className="w-full px-2.5 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="gmao-input-sm w-full"
                 />
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
                     Cada
                   </span>
                   <input
                     {...register(`tasks.${index}.frequency_days`)}
                     type="number"
                     min={1}
-                    className="w-16 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-center"
+                    className="gmao-input-sm w-16 text-center"
                   />
-                  <span className="text-xs text-gray-500">días</span>
+                  <span className="text-xs text-muted-foreground">días</span>
                 </div>
                 {errors.tasks?.[index]?.description && (
-                  <p className="text-xs text-red-500">
+                  <p className="gmao-error">
                     {errors.tasks[index]?.description?.message}
                   </p>
                 )}
@@ -249,7 +249,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
                 <button
                   type="button"
                   onClick={() => remove(index)}
-                  className="mt-1 p-1.5 text-gray-400 hover:text-red-500"
+                  className="mt-1 p-1.5 text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -258,7 +258,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
           ))}
         </div>
         {errors.tasks?.root && (
-          <p className="text-xs text-red-500 mt-1">{errors.tasks.root.message}</p>
+          <p className="gmao-error mt-1">{errors.tasks.root.message}</p>
         )}
         <button
           type="button"
@@ -273,7 +273,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 disabled:opacity-50"
+        className="gmao-btn-primary"
       >
         {isSubmitting ? 'Guardando...' : 'Crear plan'}
       </button>

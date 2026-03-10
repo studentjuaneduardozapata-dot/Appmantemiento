@@ -47,11 +47,11 @@ export function ImagePicker({ value, onChange, onClear }: ImagePickerProps) {
             <img
               src={previewSrc}
               alt="Vista previa"
-              className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+              className="w-32 h-32 object-cover rounded-lg border border-border"
             />
           ) : (
-            <div className="w-32 h-32 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center">
-              <Camera className="w-8 h-8 text-gray-400" />
+            <div className="w-32 h-32 rounded-lg border border-border bg-muted flex items-center justify-center">
+              <Camera className="w-8 h-8 text-muted-foreground" />
               <span className="sr-only">Imagen guardada</span>
             </div>
           )}
@@ -67,7 +67,7 @@ export function ImagePicker({ value, onChange, onClear }: ImagePickerProps) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-500 transition-colors"
+          className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors"
         >
           <Camera className="w-6 h-6 mb-1" />
           <span className="text-xs">Agregar foto</span>

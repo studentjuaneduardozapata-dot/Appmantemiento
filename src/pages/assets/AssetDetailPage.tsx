@@ -37,7 +37,7 @@ export default function AssetDetailPage() {
   if (asset === undefined) {
     return (
       <div className="flex items-center justify-center h-40">
-        <p className="text-sm text-gray-400">Cargando...</p>
+        <p className="text-sm text-muted-foreground">Cargando...</p>
       </div>
     )
   }
@@ -45,7 +45,7 @@ export default function AssetDetailPage() {
   if (asset === null) {
     return (
       <div className="flex items-center justify-center h-40">
-        <p className="text-sm text-gray-400">Activo no encontrado</p>
+        <p className="text-sm text-muted-foreground">Activo no encontrado</p>
       </div>
     )
   }
@@ -56,33 +56,33 @@ export default function AssetDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1 -ml-1 text-gray-500 hover:text-gray-700"
+          className="p-1 -ml-1 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1 min-w-0 flex items-center gap-2">
           <TrafficLight status={light} />
-          <h1 className="text-base font-semibold text-gray-900 truncate">
+          <h1 className="text-base font-semibold text-foreground truncate">
             {asset.name}
           </h1>
         </div>
         <button
           type="button"
           onClick={() => navigate(`/assets/${id}/edit`)}
-          className="p-1.5 text-gray-500 hover:text-blue-600"
+          className="p-1.5 text-muted-foreground hover:text-primary"
         >
           <Edit2 className="w-4 h-4" />
         </button>
         <button
           type="button"
           onClick={() => setDeleteOpen(true)}
-          className="p-1.5 text-gray-500 hover:text-red-600"
+          className="p-1.5 text-muted-foreground hover:text-destructive"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -90,7 +90,7 @@ export default function AssetDetailPage() {
 
       {/* Foto */}
       {imageSrc && (
-        <div className="bg-white mb-3">
+        <div className="bg-card mb-3">
           <img
             src={imageSrc}
             alt={asset.name}
@@ -100,7 +100,7 @@ export default function AssetDetailPage() {
       )}
 
       {/* Info */}
-      <div className="bg-white mx-4 mt-3 rounded-lg border border-gray-200 divide-y divide-gray-100">
+      <div className="bg-card mx-4 mt-3 rounded-lg border border-border divide-y divide-border">
         <Row label="Categoría" value={category?.name ?? '—'} />
         <Row label="Área" value={area?.name ?? '—'} />
         <Row label="Estado" value={STATUS_LABELS[asset.status] ?? asset.status} />
@@ -109,10 +109,10 @@ export default function AssetDetailPage() {
       {/* Specs */}
       {asset.specs.length > 0 && (
         <div className="mx-4 mt-3">
-          <h2 className="text-sm font-semibold text-gray-700 mb-2 px-1">
+          <h2 className="gmao-section-title mb-2 px-1">
             Especificaciones técnicas
           </h2>
-          <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+          <div className="bg-card rounded-lg border border-border divide-y divide-border">
             {asset.specs.map((s, i) => (
               <Row key={i} label={s.key} value={s.value} />
             ))}
@@ -125,7 +125,7 @@ export default function AssetDetailPage() {
         <button
           type="button"
           onClick={() => setQrOpen(true)}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50"
+          className="w-full flex items-center justify-center gap-2 py-3 bg-card border border-border rounded-lg text-sm font-medium text-primary hover:bg-accent/50"
         >
           <QrCode className="w-4 h-4" />
           Ver código QR
@@ -160,8 +160,8 @@ export default function AssetDetailPage() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between px-4 py-2.5">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-medium text-gray-900 text-right max-w-[60%]">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-medium text-foreground text-right max-w-[60%]">
         {value}
       </span>
     </div>

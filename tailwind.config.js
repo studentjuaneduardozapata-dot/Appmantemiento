@@ -62,10 +62,18 @@ export default {
           foreground: 'var(--sidebar-foreground)',
           border:     'var(--sidebar-border)',
         },
+        nav: {
+          inactive: 'var(--nav-inactive)',
+        },
+        surface: {
+          DEFAULT: 'var(--surface)',
+        },
+      },
+      boxShadow: {
+        card: 'var(--shadow-card)',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        serif: ['Crimson Pro', 'Georgia', 'serif'],
+        sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'sans-serif'],
         mono: [
           'SF Mono',
           'ui-monospace',

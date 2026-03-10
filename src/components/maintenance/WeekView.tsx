@@ -50,18 +50,18 @@ export function WeekView({ weekStart, onWeekChange, onTaskClick }: WeekViewProps
         <button
           type="button"
           onClick={() => onWeekChange(-1)}
-          className="p-1.5 text-gray-500 hover:text-gray-700"
+          className="p-1.5 text-muted-foreground hover:text-foreground"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-foreground">
           {format(weekStart, 'dd MMM', { locale: es })} —{' '}
           {format(days[6], 'dd MMM yyyy', { locale: es })}
         </span>
         <button
           type="button"
           onClick={() => onWeekChange(1)}
-          className="p-1.5 text-gray-500 hover:text-gray-700"
+          className="p-1.5 text-muted-foreground hover:text-foreground"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -78,19 +78,19 @@ export function WeekView({ weekStart, onWeekChange, onTaskClick }: WeekViewProps
             return (
               <div
                 key={dayKey}
-                className="flex-1 min-w-[80px] border-r border-gray-100 last:border-r-0"
+                className="flex-1 min-w-[80px] border-r border-border last:border-r-0"
               >
                 {/* Day header */}
                 <div
                   className={cn(
-                    'px-2 py-2 text-center border-b border-gray-100',
+                    'px-2 py-2 text-center border-b border-border',
                     today && 'bg-primary/10'
                   )}
                 >
                   <p
                     className={cn(
                       'text-xs font-medium uppercase',
-                      today ? 'text-primary' : 'text-gray-500'
+                      today ? 'text-primary' : 'text-muted-foreground'
                     )}
                   >
                     {format(day, 'EEE', { locale: es })}
@@ -98,7 +98,7 @@ export function WeekView({ weekStart, onWeekChange, onTaskClick }: WeekViewProps
                   <p
                     className={cn(
                       'text-sm font-bold mt-0.5',
-                      today ? 'text-primary' : 'text-gray-800'
+                      today ? 'text-primary' : 'text-foreground'
                     )}
                   >
                     {format(day, 'd')}

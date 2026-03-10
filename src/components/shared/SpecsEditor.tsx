@@ -34,19 +34,19 @@ export function SpecsEditor({ value, onChange }: SpecsEditorProps) {
             value={spec.key}
             onChange={(e) => updateKey(index, e.target.value)}
             placeholder="Campo"
-            className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="gmao-input-sm flex-1 min-w-0"
           />
           <input
             type="text"
             value={spec.value}
             onChange={(e) => updateValue(index, e.target.value)}
             placeholder="Valor"
-            className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="gmao-input-sm flex-1 min-w-0"
           />
           <button
             type="button"
             onClick={() => remove(index)}
-            className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500"
+            className="flex-shrink-0 p-1 text-muted-foreground hover:text-destructive"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -55,7 +55,7 @@ export function SpecsEditor({ value, onChange }: SpecsEditorProps) {
       <button
         type="button"
         onClick={add}
-        className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+        className="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
       >
         <Plus className="w-4 h-4" />
         Agregar especificación

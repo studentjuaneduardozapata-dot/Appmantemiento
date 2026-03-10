@@ -27,7 +27,7 @@ export default function IncidentDetailPage() {
   if (incident === undefined) {
     return (
       <div className="flex items-center justify-center h-40">
-        <p className="text-sm text-gray-400">Cargando...</p>
+        <p className="text-sm text-muted-foreground">Cargando...</p>
       </div>
     )
   }
@@ -66,29 +66,29 @@ export default function IncidentDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+    <div className="min-h-screen bg-background">
+      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1 -ml-1 text-gray-500 hover:text-gray-700"
+          className="p-1 -ml-1 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="flex-1 text-base font-semibold text-gray-900 truncate">
+        <h1 className="flex-1 text-base font-semibold text-foreground truncate">
           {asset?.name ?? 'Falla'}
         </h1>
         <button
           type="button"
           onClick={() => setEditMode(!editMode)}
-          className="p-1.5 text-gray-500 hover:text-blue-600"
+          className="p-1.5 text-muted-foreground hover:text-primary"
         >
           <Edit2 className="w-4 h-4" />
         </button>
         <button
           type="button"
           onClick={() => setDeleteOpen(true)}
-          className="p-1.5 text-gray-500 hover:text-red-600"
+          className="p-1.5 text-muted-foreground hover:text-destructive"
         >
           <Trash2 className="w-4 h-4" />
         </button>

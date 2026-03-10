@@ -27,15 +27,14 @@ export function Sidebar() {
   const { isOnline, isSyncing, lastSync, triggerSync } = useSyncContext()
 
   return (
-    <aside className="hidden md:flex flex-col w-56 h-screen fixed left-0 top-0 z-50"
-      style={{ backgroundColor: 'var(--bg-header)', color: 'var(--text-header)' }}>
+    <aside className="hidden md:flex flex-col w-56 h-screen fixed left-0 top-0 z-50 bg-sidebar text-sidebar-foreground">
       {/* Logo / Header */}
-      <div className="px-4 py-5" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
+      <div className="px-4 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <Wrench className="w-6 h-6" style={{ color: 'var(--primary)' }} />
+          <Wrench className="w-6 h-6 text-primary" />
           <div>
-            <p className="text-sm font-bold leading-tight" style={{ color: 'var(--text-header)' }}>GMAO Planta</p>
-            <p className="text-xs" style={{ color: '#71717a' }}>Mantenimiento Industrial</p>
+            <p className="text-sm font-bold leading-tight text-sidebar-foreground">GMAO Planta</p>
+            <p className="text-xs text-nav-inactive">Mantenimiento Industrial</p>
           </div>
         </div>
       </div>
@@ -51,14 +50,9 @@ export function Sidebar() {
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
                 isActive
-                  ? 'text-primary-foreground'
-                  : 'hover:bg-white/5'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-nav-inactive hover:bg-white/5'
               )
-            }
-            style={({ isActive }) =>
-              isActive
-                ? { backgroundColor: 'var(--primary)', color: 'var(--text-header)' }
-                : { color: '#a1a1aa' }
             }
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
@@ -68,28 +62,28 @@ export function Sidebar() {
       </nav>
 
       {/* Footer: estado sync + admin */}
-      <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+      <div className="px-3 py-3 space-y-2 border-t border-sidebar-border">
         {/* Sync status */}
-        <div className="flex items-center justify-between text-xs" style={{ color: '#71717a' }}>
+        <div className="flex items-center justify-between text-xs text-nav-inactive">
           <div className="flex items-center gap-1.5">
             {isOnline ? (
-              <Wifi className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
+              <Wifi className="w-3.5 h-3.5 text-primary" />
             ) : (
-              <WifiOff className="w-3.5 h-3.5" style={{ color: 'var(--destructive)' }} />
+              <WifiOff className="w-3.5 h-3.5 text-destructive" />
             )}
             <span>{isOnline ? 'Online' : 'Offline'}</span>
           </div>
           <button
             onClick={triggerSync}
             disabled={isSyncing || !isOnline}
-            className="hover:text-white disabled:opacity-40 transition-colors"
+            className="hover:text-sidebar-foreground disabled:opacity-40 transition-colors"
             title="Sincronizar ahora"
           >
             <RefreshCw className={cn('w-3.5 h-3.5', isSyncing && 'animate-spin')} />
           </button>
         </div>
         {lastSync && (
-          <p className="text-[10px]" style={{ color: '#52525b' }}>
+          <p className="text-[10px] text-muted-foreground">
             Sync: {lastSync.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
           </p>
         )}
@@ -99,11 +93,10 @@ export function Sidebar() {
           to="/admin"
           className={({ isActive }) =>
             cn(
-              'flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors',
+              'flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors text-nav-inactive',
               isActive ? 'bg-white/10' : 'hover:bg-white/5'
             )
           }
-          style={{ color: '#71717a' }}
         >
           <Settings className="w-3.5 h-3.5" />
           <span>Administración</span>
