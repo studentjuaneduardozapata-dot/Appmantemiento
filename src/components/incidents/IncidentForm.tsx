@@ -89,6 +89,35 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 px-4 py-4">
+      {/* Quién reporta */}
+      <div>
+        <label className="gmao-label">
+          Quién reporta <span className="text-destructive">*</span>
+        </label>
+        {users && users.length > 0 ? (
+          <select
+            {...register('reported_by')}
+            className="gmao-select"
+          >
+            <option value="">Seleccionar...</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.name}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            {...register('reported_by')}
+            placeholder="Nombre de quien reporta"
+            className="gmao-input"
+          />
+        )}
+        {errors.reported_by && (
+          <p className="gmao-error">{errors.reported_by.message}</p>
+        )}
+      </div>
+
       {/* Área (filtro) */}
       <div>
         <label className="gmao-label">Área</label>
@@ -166,35 +195,6 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Quién reporta */}
-      <div>
-        <label className="gmao-label">
-          Quién reporta <span className="text-destructive">*</span>
-        </label>
-        {users && users.length > 0 ? (
-          <select
-            {...register('reported_by')}
-            className="gmao-select"
-          >
-            <option value="">Seleccionar...</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.name}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <input
-            {...register('reported_by')}
-            placeholder="Nombre de quien reporta"
-            className="gmao-input"
-          />
-        )}
-        {errors.reported_by && (
-          <p className="gmao-error">{errors.reported_by.message}</p>
-        )}
       </div>
 
       {/* Descripción */}

@@ -1,8 +1,8 @@
 import { db } from '@/lib/db'
 import { networkStatus } from './networkStatus'
-import { processPending, purgeInvalidQueueItems } from './syncQueue'
+import { processPending, purgeInvalidQueueItems, purgeCompletedQueueItems } from './syncQueue'
 import { syncBlobs } from './blobSync'
-import { pullAll } from './initialSync'
+import { pullAll, purgeOldDeletedRecords } from './initialSync'
 import { startRealtime, stopRealtime } from './realtimeSync'
 import { syncLogger } from './syncLogger'
 
@@ -10,35 +10,45 @@ const SYNC_INTERVAL_MS = 3 * 60 * 1000 // 3 minutos
 
 class SyncManager {
   private _isRunning = false
-  private _isSyncing = false
+  private _syncPromise: Promise<void> | null = null
   private _interval: ReturnType<typeof setInterval> | null = null
   private _onConnectivityChange: (() => void) | null = null
 
   get isSyncing(): boolean {
-    return this._isSyncing
+    return this._syncPromise !== null
   }
 
   async sync(): Promise<void> {
-    if (this._isSyncing) {
+    // Promise-lock: si ya hay un sync en curso, devuelve la misma promesa (no corre doble)
+    if (this._syncPromise) {
       syncLogger.debug('Sync ya en curso, ignorando')
-      return
+      return this._syncPromise
     }
+    this._syncPromise = this._doSync()
+    try {
+      await this._syncPromise
+    } finally {
+      this._syncPromise = null
+    }
+  }
 
+  private async _doSync(): Promise<void> {
     if (!networkStatus.isOnline) {
       syncLogger.debug('Sin conexión, sync omitido')
       return
     }
 
-    this._isSyncing = true
     await db.sync_meta.put({
       key: 'sync_status',
       value: 'syncing',
     })
 
     try {
+      await purgeOldDeletedRecords()
+      await purgeCompletedQueueItems()
       await purgeInvalidQueueItems()
-      await processPending()
       await syncBlobs()
+      await processPending()
       await pullAll()
 
       await db.sync_meta.put({
@@ -50,8 +60,6 @@ class SyncManager {
     } catch (err) {
       syncLogger.error('Error durante sync', err)
       await db.sync_meta.put({ key: 'sync_status', value: 'error' })
-    } finally {
-      this._isSyncing = false
     }
   }
 

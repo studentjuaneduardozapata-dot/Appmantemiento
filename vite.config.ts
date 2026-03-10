@@ -42,16 +42,21 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
+            // Imágenes de Supabase Storage → CacheFirst para acceso offline
+            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
+            handler: 'CacheFirst',
             options: {
-              cacheName: 'supabase-cache',
-              networkTimeoutSeconds: 5,
+              cacheName: 'supabase-storage',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24,
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 días
               },
             },
+          },
+          {
+            // REST API de Supabase → NetworkOnly (Dexie es la fuente de verdad local)
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkOnly',
           },
         ],
       },

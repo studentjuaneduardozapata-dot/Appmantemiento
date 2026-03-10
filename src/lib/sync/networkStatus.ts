@@ -6,14 +6,17 @@ const PING_TIMEOUT_MS = 5_000
 class NetworkStatus extends EventTarget {
   private _isOnline: boolean = navigator.onLine
   private _pingInterval: ReturnType<typeof setInterval> | null = null
-  private _pingUrl: string
+  private _pingUrl: string | null
 
   constructor() {
     super()
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-    this._pingUrl = supabaseUrl
-      ? `${supabaseUrl}/rest/v1/`
-      : 'https://httpbin.org/get'
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+    if (!supabaseUrl) {
+      syncLogger.warn('VITE_SUPABASE_URL no configurado — conectividad asumida siempre online')
+      this._pingUrl = null
+    } else {
+      this._pingUrl = `${supabaseUrl}/rest/v1/`
+    }
 
     window.addEventListener('online', () => this._checkConnectivity())
     window.addEventListener('offline', () => this._setOnline(false))
@@ -39,6 +42,12 @@ class NetworkStatus extends EventTarget {
   }
 
   private async _checkConnectivity(): Promise<void> {
+    // Sin URL configurada: asumir online (no pingar servicios externos)
+    if (!this._pingUrl) {
+      this._setOnline(true)
+      return
+    }
+
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), PING_TIMEOUT_MS)

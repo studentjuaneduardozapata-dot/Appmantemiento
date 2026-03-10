@@ -1,8 +1,7 @@
-export async function requestNotificationPermission(): Promise<void> {
-  if (typeof Notification === 'undefined') return
-  if (Notification.permission === 'default') {
-    await Notification.requestPermission()
-  }
+export async function requestNotificationPermission(): Promise<NotificationPermission> {
+  if (typeof Notification === 'undefined') return 'denied'
+  if (Notification.permission !== 'default') return Notification.permission
+  return await Notification.requestPermission()
 }
 
 export function notifyFalla(assetName: string): void {

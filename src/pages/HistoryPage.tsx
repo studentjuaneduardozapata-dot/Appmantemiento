@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { format, subDays } from 'date-fns'
+import { format, subDays, subMonths } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { db } from '@/lib/db'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { cn } from '@/lib/utils'
 
 type TypeFilter = 'all' | 'mantenimiento' | 'falla'
+type Period = '15d' | '1m' | 'custom'
 
 const INCIDENT_TYPE_LABELS: Record<string, string> = {
   mecanica: 'Mecánica',
@@ -18,13 +19,76 @@ function toDateStr(d: Date): string {
   return format(d, 'yyyy-MM-dd')
 }
 
+function StatCard({ title, value, color, bg }: { title: string; value: number; color: string; bg: string }) {
+  return (
+    <div className={cn('rounded-xl p-3 border border-border', bg)}>
+      <p className={cn('text-2xl font-bold', color)}>{value}</p>
+      <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{title}</p>
+    </div>
+  )
+}
+
 export default function HistoryPage() {
+  const [period, setPeriod] = useState<Period>('1m')
+  const [customFrom, setCustomFrom] = useState(() => toDateStr(subDays(new Date(), 30)))
+  const [customTo, setCustomTo] = useState(() => toDateStr(new Date()))
+
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [assetFilter, setAssetFilter] = useState('')
   const [areaFilter, setAreaFilter] = useState('')
-  const [dateFrom, setDateFrom] = useState(() => toDateStr(subDays(new Date(), 30)))
-  const [dateTo, setDateTo] = useState(() => toDateStr(new Date()))
 
+  const dateFrom =
+    period === '15d'
+      ? toDateStr(subDays(new Date(), 15))
+      : period === '1m'
+        ? toDateStr(subMonths(new Date(), 1))
+        : customFrom
+  const dateTo = period === 'custom' ? customTo : toDateStr(new Date())
+
+  // ── Summary stats ────────────────────────────────────────────────────────────
+  const stats = useLiveQuery(async () => {
+    const todayLocal = toDateStr(new Date())
+    const [logs, allIncidents, tasks, assets] = await Promise.all([
+      db.maintenance_logs
+        .where('completed_at')
+        .between(dateFrom, dateTo + 'T99', true, true)
+        .toArray(),
+      db.incidents.filter((i) => !i.deleted_at).toArray(),
+      db.maintenance_tasks.toArray(),
+      db.assets.filter((a) => !a.deleted_at).toArray(),
+    ])
+    const incidentsInRange = allIncidents.filter(
+      (i) => i.reported_at >= dateFrom && i.reported_at <= dateTo
+    )
+    const incidentsClosed = allIncidents.filter(
+      (i) =>
+        i.status === 'cerrada' &&
+        i.closed_at &&
+        i.closed_at >= dateFrom &&
+        i.closed_at <= dateTo + 'T99'
+    )
+    const tasksOverdue = tasks.filter(
+      (t) => t.status === 'pendiente' && t.next_due_date < todayLocal
+    ).length
+    const incidentsByAsset = new Map<string, number>()
+    for (const inc of incidentsInRange) {
+      incidentsByAsset.set(inc.asset_id, (incidentsByAsset.get(inc.asset_id) ?? 0) + 1)
+    }
+    const assetNameMap = new Map(assets.map((a) => [a.id, a.name]))
+    const topAssets = [...incidentsByAsset.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([id, count]) => ({ id, name: assetNameMap.get(id) ?? '?', count }))
+    return {
+      totalLogs: logs.length,
+      incidentsReported: incidentsInRange.length,
+      incidentsClosed: incidentsClosed.length,
+      tasksOverdue,
+      topAssets,
+    }
+  }, [dateFrom, dateTo])
+
+  // ── History timeline ─────────────────────────────────────────────────────────
   const data = useLiveQuery(async () => {
     const [assets, areas, plans, logs, incidents] = await Promise.all([
       db.assets.filter((a) => !a.deleted_at).toArray(),
@@ -114,9 +178,101 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-background">
       <PageHeader title="Historial" />
 
-      {/* Filters */}
-      <div className="bg-card border-b border-border px-4 py-3 space-y-3">
-        {/* Type filter */}
+      {/* ── Period selector ───────────────────────────────────────────────── */}
+      <div className="bg-card border-b border-border px-4 py-3 space-y-2">
+        <div className="flex gap-2">
+          {(['15d', '1m', 'custom'] as Period[]).map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPeriod(p)}
+              className={cn(
+                'flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors',
+                period === p
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:bg-accent/50'
+              )}
+            >
+              {p === '15d' ? '15 días' : p === '1m' ? '1 mes' : 'Personalizado'}
+            </button>
+          ))}
+        </div>
+        {period === 'custom' && (
+          <div className="flex gap-2 items-center">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="gmao-input-sm flex-1"
+            />
+            <span className="text-xs text-muted-foreground">—</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="gmao-input-sm flex-1"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ── Summary stats ─────────────────────────────────────────────────── */}
+      <div className="px-4 pt-4 pb-2 space-y-3">
+        {stats === undefined ? (
+          <p className="text-center text-sm text-muted-foreground py-4">Cargando...</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <StatCard
+                title="Mantenimientos completados"
+                value={stats.totalLogs}
+                color="text-green-600"
+                bg="bg-green-50"
+              />
+              <StatCard
+                title="Fallas reportadas"
+                value={stats.incidentsReported}
+                color="text-orange-600"
+                bg="bg-orange-50"
+              />
+              <StatCard
+                title="Fallas resueltas"
+                value={stats.incidentsClosed}
+                color="text-blue-600"
+                bg="bg-blue-50"
+              />
+              <StatCard
+                title="Tareas vencidas"
+                value={stats.tasksOverdue}
+                color="text-red-600"
+                bg="bg-red-50"
+              />
+            </div>
+
+            {stats.topAssets.length > 0 && (
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                <div className="px-4 py-2.5 border-b border-border">
+                  <h2 className="gmao-section-title">Activos con más fallas</h2>
+                </div>
+                <div className="divide-y divide-border">
+                  {stats.topAssets.map((a, i) => (
+                    <div key={a.id} className="flex items-center justify-between px-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground w-4">{i + 1}.</span>
+                        <span className="text-sm text-foreground truncate">{a.name}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-orange-600">{a.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── Timeline filters ──────────────────────────────────────────────── */}
+      <div className="bg-card border-y border-border px-4 py-3 space-y-3">
         <div className="flex gap-2">
           {(['all', 'mantenimiento', 'falla'] as TypeFilter[]).map((t) => (
             <button
@@ -135,7 +291,6 @@ export default function HistoryPage() {
           ))}
         </div>
 
-        {/* Area + asset selects */}
         <div className="flex gap-2">
           <select
             value={areaFilter}
@@ -162,26 +317,9 @@ export default function HistoryPage() {
             ))}
           </select>
         </div>
-
-        {/* Date range */}
-        <div className="flex gap-2 items-center">
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="gmao-input-sm flex-1"
-          />
-          <span className="text-xs text-muted-foreground">—</span>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="gmao-input-sm flex-1"
-          />
-        </div>
       </div>
 
-      {/* List */}
+      {/* ── Timeline list ─────────────────────────────────────────────────── */}
       <div className="px-4 py-3 space-y-2">
         {data === undefined ? (
           <p className="text-center text-sm text-muted-foreground py-8">Cargando...</p>

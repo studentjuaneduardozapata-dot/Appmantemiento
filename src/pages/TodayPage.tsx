@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { format, addDays, startOfWeek, addWeeks, startOfMonth, addMonths } from 'date-fns'
@@ -214,8 +214,8 @@ export default function TodayPage() {
   )
   const allAssets = useLiveQuery(() => db.assets.toArray())
 
-  const planMap = new Map(allPlans?.map((p) => [p.id, p.title]) ?? [])
-  const assetMap = new Map(allAssets?.map((a) => [a.id, a.name]) ?? [])
+  const planMap = useMemo(() => new Map(allPlans?.map((p) => [p.id, p.title]) ?? []), [allPlans])
+  const assetMap = useMemo(() => new Map(allAssets?.map((a) => [a.id, a.name]) ?? []), [allAssets])
 
   const isLoading =
     overdueTasks === undefined ||

@@ -1,19 +1,18 @@
 import { Outlet } from 'react-router-dom'
-import { Sidebar } from '@/components/shared/Sidebar'
 import { BottomNav } from '@/components/shared/BottomNav'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 
 export function Layout() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sidebar desktop */}
-      <Sidebar />
-
+    <div className="flex flex-col min-h-screen bg-background">
       {/* Main content */}
-      <main className="md:ml-56 pb-20 md:pb-0 min-h-screen">
-        <Outlet />
+      <main className="flex-1 pb-16 min-h-screen">
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
-      {/* Bottom nav mobile */}
+      {/* Bottom nav */}
       <BottomNav />
     </div>
   )

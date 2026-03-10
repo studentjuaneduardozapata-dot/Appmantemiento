@@ -73,6 +73,7 @@ export interface Incident {
   photo_url?: string
   status: IncidentStatus
   resolution_time?: string
+  resolved_by?: string
   reported_at: string
   closed_at?: string
   deleted_at?: string
@@ -218,6 +219,40 @@ class GMAODatabase extends Dexie {
 
     this.version(3).stores({
       users: '&id, name, _synced, updated_at, created_at',
+    })
+
+    this.version(4).stores({
+      incidents:
+        '&id, asset_id, status, reported_by, resolved_by, _synced, deleted_at, updated_at, reported_at',
+    })
+
+    // Migración única: deduplicar asset_categories por nombre en Dexie local.
+    // Conserva el registro con created_at más antiguo, redirige referencias en assets.
+    this.version(5).stores({}).upgrade(async (tx) => {
+      const allCats = await tx.table('asset_categories').toArray()
+      const byName = new Map<string, typeof allCats>()
+      for (const cat of allCats) {
+        const key = cat.name as string
+        if (!byName.has(key)) byName.set(key, [])
+        byName.get(key)!.push(cat)
+      }
+      for (const [, group] of byName) {
+        if (group.length <= 1) continue
+        // El canónico es el más antiguo (menor created_at)
+        group.sort((a, b) => (a.created_at < b.created_at ? -1 : 1))
+        const canonical = group[0]
+        const duplicates = group.slice(1)
+        for (const dup of duplicates) {
+          // Redirigir activos
+          const dupAssets = await tx.table('assets')
+            .where('category_id').equals(dup.id)
+            .toArray()
+          for (const asset of dupAssets) {
+            await tx.table('assets').update(asset.id, { category_id: canonical.id, _synced: false })
+          }
+          await tx.table('asset_categories').delete(dup.id)
+        }
+      }
     })
   }
 }

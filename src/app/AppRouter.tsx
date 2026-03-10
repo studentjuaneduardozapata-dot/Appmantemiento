@@ -3,6 +3,7 @@ import { Layout } from './Layout'
 import TodayPage from '@/pages/TodayPage'
 import AssetsPage from '@/pages/AssetsPage'
 import AssetNewPage from '@/pages/assets/AssetNewPage'
+import AreaDetailPage from '@/pages/assets/AreaDetailPage'
 import AssetDetailPage from '@/pages/assets/AssetDetailPage'
 import AssetEditPage from '@/pages/assets/AssetEditPage'
 import NewPlanPage from '@/pages/schedule/NewPlanPage'
@@ -11,7 +12,6 @@ import IncidentsPage from '@/pages/IncidentsPage'
 import IncidentNewPage from '@/pages/incidents/IncidentNewPage'
 import IncidentDetailPage from '@/pages/incidents/IncidentDetailPage'
 import HistoryPage from '@/pages/HistoryPage'
-import SummaryPage from '@/pages/SummaryPage'
 import ScanPage from '@/pages/ScanPage'
 import AdminPage from '@/pages/AdminPage'
 
@@ -24,6 +24,7 @@ export function AppRouter() {
         {/* Assets — literal 'new' antes que :id */}
         <Route path="assets" element={<AssetsPage />} />
         <Route path="assets/new" element={<AssetNewPage />} />
+        <Route path="assets/area/:id" element={<AreaDetailPage />} />
         <Route path="assets/:id" element={<AssetDetailPage />} />
         <Route path="assets/:id/edit" element={<AssetEditPage />} />
 
@@ -37,7 +38,6 @@ export function AppRouter() {
         <Route path="incidents/:id" element={<IncidentDetailPage />} />
 
         <Route path="history" element={<HistoryPage />} />
-        <Route path="summary" element={<SummaryPage />} />
         <Route path="scan" element={<ScanPage />} />
         <Route path="admin" element={<AdminPage />} />
       </Route>

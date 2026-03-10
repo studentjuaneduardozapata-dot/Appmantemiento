@@ -324,8 +324,11 @@ function AreasTab() {
     await db.transaction('rw', [db.areas, db.sync_queue], async () => {
       await db.areas.update(area.id, { sort_order: other.sort_order })
       await db.areas.update(other.id, { sort_order: area.sort_order })
-      await enqueue('areas', 'update', { ...area, sort_order: other.sort_order } as unknown as Record<string, unknown>)
-      await enqueue('areas', 'update', { ...other, sort_order: area.sort_order } as unknown as Record<string, unknown>)
+      // Leer registros frescos post-update para encolar el payload correcto
+      const updatedArea = await db.areas.get(area.id)
+      const updatedOther = await db.areas.get(other.id)
+      if (updatedArea) await enqueue('areas', 'update', updatedArea as unknown as Record<string, unknown>)
+      if (updatedOther) await enqueue('areas', 'update', updatedOther as unknown as Record<string, unknown>)
     })
   }
 

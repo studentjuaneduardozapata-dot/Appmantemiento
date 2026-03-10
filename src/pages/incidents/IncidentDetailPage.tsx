@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { ArrowLeft, Edit2, Trash2 } from 'lucide-react'
 import { db } from '@/lib/db'
 import type { IncidentStatus } from '@/lib/db'
-import { useIncident, updateIncident, closeIncident, softDeleteIncident } from '@/hooks/useIncidents'
+import { useIncident, updateIncident, softDeleteIncident } from '@/hooks/useIncidents'
 import { IncidentDetail } from '@/components/incidents/IncidentDetail'
 import { IncidentForm } from '@/components/incidents/IncidentForm'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -32,15 +32,8 @@ export default function IncidentDetailPage() {
     )
   }
 
-  async function handleStatusChange(
-    newStatus: IncidentStatus,
-    resolutionTime?: string
-  ) {
-    if (newStatus === 'cerrada' && resolutionTime !== undefined) {
-      await closeIncident(id!, resolutionTime)
-    } else {
-      await updateIncident(id!, { status: newStatus })
-    }
+  async function handleStatusChange(newStatus: IncidentStatus) {
+    await updateIncident(id!, { status: newStatus })
   }
 
   async function handleEdit(data: IncidentFormData) {

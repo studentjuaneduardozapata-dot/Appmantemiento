@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { format, addDays } from 'date-fns'
+import { format, addDays, parseISO } from 'date-fns'
 import { toast } from 'sonner'
 import { db, generateId } from '@/lib/db'
 import type { MaintenanceTask, MaintenancePlan, MaintenanceLog, TaskStatus } from '@/lib/db'
@@ -60,31 +60,13 @@ export async function completeTask(
   }
 ): Promise<void> {
   const now = new Date().toISOString()
-  const logId = generateId()
-  const assetId = plan.asset_ids[0] ?? ''
-
-  const log: MaintenanceLog = {
-    id: logId,
-    task_id: task.id,
-    plan_id: plan.id,
-    asset_id: assetId,
-    completed_by: logData.completed_by,
-    notes: logData.notes,
-    photo_url: logData.photo_url,
-    completed_at: logData.completed_at,
-    created_at: now,
-    _synced: false,
-  }
 
   // Para preventivo: recalcular next_due_date y mantener pendiente
   // Para único: marcar completada definitivamente
   const newStatus: TaskStatus = plan.type === 'unico' ? 'completada' : 'pendiente'
   const nextDue =
     plan.type === 'preventivo'
-      ? format(
-          addDays(new Date(logData.completed_at + 'T00:00:00'), task.frequency_days),
-          'yyyy-MM-dd'
-        )
+      ? format(addDays(parseISO(logData.completed_at), task.frequency_days), 'yyyy-MM-dd')
       : task.next_due_date
 
   const taskUpdate = {
@@ -94,19 +76,38 @@ export async function completeTask(
     _synced: false,
   }
 
-  await db.transaction(
-    'rw',
-    [db.maintenance_logs, db.maintenance_tasks, db.sync_queue],
-    async () => {
-      await db.maintenance_logs.add(log)
-      await db.maintenance_tasks.update(task.id, taskUpdate)
-      await enqueue('maintenance_logs', 'insert', log as unknown as Record<string, unknown>)
-      await enqueue('maintenance_tasks', 'update', {
-        ...task,
-        ...taskUpdate,
-      } as unknown as Record<string, unknown>)
-    }
-  )
-
-  toast.success('Tarea completada')
+  try {
+    await db.transaction(
+      'rw',
+      [db.maintenance_logs, db.maintenance_tasks, db.sync_queue],
+      async () => {
+        // Crear un log por cada activo asociado al plan
+        for (const assetId of plan.asset_ids) {
+          const log: MaintenanceLog = {
+            id: generateId(),
+            task_id: task.id,
+            plan_id: plan.id,
+            asset_id: assetId,
+            completed_by: logData.completed_by,
+            notes: logData.notes,
+            photo_url: logData.photo_url,
+            completed_at: logData.completed_at,
+            created_at: now,
+            _synced: false,
+          }
+          await db.maintenance_logs.add(log)
+          await enqueue('maintenance_logs', 'insert', log as unknown as Record<string, unknown>)
+        }
+        await db.maintenance_tasks.update(task.id, taskUpdate)
+        await enqueue('maintenance_tasks', 'update', {
+          ...task,
+          ...taskUpdate,
+        } as unknown as Record<string, unknown>)
+      }
+    )
+    toast.success('Tarea completada')
+  } catch (err) {
+    toast.error('Error al completar la tarea')
+    throw err
+  }
 }

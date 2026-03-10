@@ -1,6 +1,9 @@
+import { format } from 'date-fns'
 import { db } from '@/lib/db'
 import { supabase } from '@/integrations/supabase/client'
 import { syncLogger } from './syncLogger'
+import { deduplicateAreasByCode, deduplicateCategoriesByName } from './deduplication'
+import { getTable } from './dbAccess'
 
 const SYNC_TABLES = [
   'users',
@@ -48,8 +51,16 @@ async function pullTable(table: SyncTable, since: string | null): Promise<number
 
   if (!data || data.length === 0) return 0
 
-  const dexieTable = (db as unknown as Record<string, { bulkPut: (items: unknown[]) => Promise<unknown> }>)[table]
+  const dexieTable = getTable(table)
   if (dexieTable) {
+    // Para 'areas': eliminar duplicados locales por code antes de bulkPut para evitar IDs fantasma
+    if (table === 'areas') {
+      await deduplicateAreasByCode(data as Record<string, unknown>[])
+    }
+    // Para 'asset_categories': eliminar duplicados locales por name antes de bulkPut
+    if (table === 'asset_categories') {
+      await deduplicateCategoriesByName(data as Record<string, unknown>[])
+    }
     await dexieTable.bulkPut(data)
   }
 
@@ -70,13 +81,24 @@ async function pullDeletedRecords(since: string | null): Promise<void> {
   if (error || !data) return
 
   for (const record of data) {
-    const dexieTable = (db as unknown as Record<string, { update: (id: string, changes: object) => Promise<unknown> }>)[record.table_name]
+    const dexieTable = getTable(record.table_name)
     if (dexieTable) {
       await dexieTable.update(record.record_id, {
         deleted_at: record.deleted_at,
       })
     }
   }
+}
+
+export async function purgeOldDeletedRecords(): Promise<void> {
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const meta = await db.sync_meta.get('last_deleted_records_purge')
+  if (meta?.value === today) return
+
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 86_400_000).toISOString()
+  await db.deleted_records.where('deleted_at').below(ninetyDaysAgo).delete()
+  await db.sync_meta.put({ key: 'last_deleted_records_purge', value: today })
+  syncLogger.debug('Purgados deleted_records > 90 días')
 }
 
 export async function pullAll(): Promise<void> {

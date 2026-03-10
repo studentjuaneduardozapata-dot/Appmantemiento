@@ -1,32 +1,34 @@
 import { db, generateId } from '@/lib/db'
 import { enqueue } from '@/lib/sync/syncQueue'
 
-const CATEGORIES = [
-  'Silos',
-  'Secadoras',
-  'Limpiadoras',
-  'Pre-limpiadoras',
-  'Elevadores',
-  'Básculas',
-  'Báscula camionera',
-  'Báscula portátil',
-  'Clasificadoras',
-  'Desgeminadoras',
-  'Hidropolichadores',
-  'Ensacadoras',
-  'Máquinas de coser',
-  'Tableros de control',
-  'Tolvas de recibo',
-  'Despredadora',
-  'Transportadores de banda',
-  'Montacargas',
-  'Elevadores de bulto (malacate)',
-  'Elevadores de bultos (grillo)',
-  'Parrillas',
-  'Infraestructura',
-  'Motores',
-  'Componentes',
-  'Otros',
+// IDs estables: fijos por nombre para que múltiples dispositivos generen el mismo registro
+// y el upsert en Supabase sea idempotente (sin duplicados al instalar en varios dispositivos).
+const CATEGORIES: { id: string; name: string }[] = [
+  { id: 'cat-0001-0000-0000-000000000001', name: 'Silos' },
+  { id: 'cat-0001-0000-0000-000000000002', name: 'Secadoras' },
+  { id: 'cat-0001-0000-0000-000000000003', name: 'Limpiadoras' },
+  { id: 'cat-0001-0000-0000-000000000004', name: 'Pre-limpiadoras' },
+  { id: 'cat-0001-0000-0000-000000000005', name: 'Elevadores' },
+  { id: 'cat-0001-0000-0000-000000000006', name: 'Básculas' },
+  { id: 'cat-0001-0000-0000-000000000007', name: 'Báscula camionera' },
+  { id: 'cat-0001-0000-0000-000000000008', name: 'Báscula portátil' },
+  { id: 'cat-0001-0000-0000-000000000009', name: 'Clasificadoras' },
+  { id: 'cat-0001-0000-0000-000000000010', name: 'Desgeminadoras' },
+  { id: 'cat-0001-0000-0000-000000000011', name: 'Hidropolichadores' },
+  { id: 'cat-0001-0000-0000-000000000012', name: 'Ensacadoras' },
+  { id: 'cat-0001-0000-0000-000000000013', name: 'Máquinas de coser' },
+  { id: 'cat-0001-0000-0000-000000000014', name: 'Tableros de control' },
+  { id: 'cat-0001-0000-0000-000000000015', name: 'Tolvas de recibo' },
+  { id: 'cat-0001-0000-0000-000000000016', name: 'Despredadora' },
+  { id: 'cat-0001-0000-0000-000000000017', name: 'Transportadores de banda' },
+  { id: 'cat-0001-0000-0000-000000000018', name: 'Montacargas' },
+  { id: 'cat-0001-0000-0000-000000000019', name: 'Elevadores de bulto (malacate)' },
+  { id: 'cat-0001-0000-0000-000000000020', name: 'Elevadores de bultos (grillo)' },
+  { id: 'cat-0001-0000-0000-000000000021', name: 'Parrillas' },
+  { id: 'cat-0001-0000-0000-000000000022', name: 'Infraestructura' },
+  { id: 'cat-0001-0000-0000-000000000023', name: 'Motores' },
+  { id: 'cat-0001-0000-0000-000000000024', name: 'Componentes' },
+  { id: 'cat-0001-0000-0000-000000000025', name: 'Otros' },
 ]
 
 const AREAS = [
@@ -49,8 +51,8 @@ export async function seedIfEmpty(): Promise<void> {
   const now = new Date().toISOString()
 
   if (catCount === 0) {
-    const categories = CATEGORIES.map((name, idx) => ({
-      id: generateId(),
+    const categories = CATEGORIES.map(({ id, name }, idx) => ({
+      id,
       name,
       sort_order: idx + 1,
       created_at: now,

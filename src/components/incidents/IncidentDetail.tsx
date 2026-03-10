@@ -4,6 +4,7 @@ import { es } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import type { Incident, IncidentStatus } from '@/lib/db'
 import { useObjectUrl } from '@/hooks/useObjectUrl'
+import { ResolveIncidentDialog } from './ResolveIncidentDialog'
 
 const TYPE_LABELS: Record<string, string> = {
   mecanica: 'Mecánica',
@@ -26,7 +27,7 @@ const STATUS_COLORS: Record<string, string> = {
 interface IncidentDetailProps {
   incident: Incident
   assetName?: string
-  onStatusChange: (newStatus: IncidentStatus, resolutionTime?: string) => Promise<void>
+  onStatusChange: (newStatus: IncidentStatus) => Promise<void>
 }
 
 export function IncidentDetail({
@@ -35,19 +36,20 @@ export function IncidentDetail({
   onStatusChange,
 }: IncidentDetailProps) {
   const [selectedStatus, setSelectedStatus] = useState<IncidentStatus>(incident.status)
-  const [resolutionTime, setResolutionTime] = useState(incident.resolution_time ?? '')
   const [saving, setSaving] = useState(false)
+  const [resolveOpen, setResolveOpen] = useState(false)
   const photoSrc = useObjectUrl(incident.photo_url)
 
   const statusChanged = selectedStatus !== incident.status
 
   async function handleSaveStatus() {
+    if (selectedStatus === 'cerrada') {
+      setResolveOpen(true)
+      return
+    }
     setSaving(true)
     try {
-      await onStatusChange(
-        selectedStatus,
-        selectedStatus === 'cerrada' ? resolutionTime : undefined
-      )
+      await onStatusChange(selectedStatus)
     } finally {
       setSaving(false)
     }
@@ -85,6 +87,9 @@ export function IncidentDetail({
         {incident.description && (
           <DetailRow label="Descripción" value={incident.description} />
         )}
+        {incident.resolved_by && (
+          <DetailRow label="Resuelto por" value={incident.resolved_by} />
+        )}
         {incident.resolution_time && (
           <DetailRow label="Tiempo de resolución" value={incident.resolution_time} />
         )}
@@ -110,52 +115,49 @@ export function IncidentDetail({
       )}
 
       {/* Cambio de estado */}
-      <div className="bg-card rounded-lg border border-border p-4 space-y-3">
-        <p className="gmao-section-title">Cambiar estado</p>
-        <div className="flex gap-2">
-          {STATUS_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setSelectedStatus(opt.value)}
-              className={cn(
-                'flex-1 py-2 text-xs font-medium rounded-lg border transition-colors',
-                selectedStatus === opt.value
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-card text-muted-foreground border-border hover:border-primary'
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {selectedStatus === 'cerrada' && (
-          <div>
-            <label className="block text-xs text-muted-foreground mb-1">
-              Tiempo de resolución (opcional)
-            </label>
-            <input
-              type="text"
-              value={resolutionTime}
-              onChange={(e) => setResolutionTime(e.target.value)}
-              placeholder="Ej: 2 horas 30 minutos"
-              className="gmao-input"
-            />
+      {incident.status !== 'cerrada' && (
+        <div className="bg-card rounded-lg border border-border p-4 space-y-3">
+          <p className="gmao-section-title">Cambiar estado</p>
+          <div className="flex gap-2">
+            {STATUS_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setSelectedStatus(opt.value)}
+                className={cn(
+                  'flex-1 py-2 text-xs font-medium rounded-lg border transition-colors',
+                  selectedStatus === opt.value
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card text-muted-foreground border-border hover:border-primary'
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
-        )}
 
-        {statusChanged && (
-          <button
-            type="button"
-            onClick={handleSaveStatus}
-            disabled={saving}
-            className="gmao-btn-primary py-2"
-          >
-            {saving ? 'Guardando...' : 'Guardar estado'}
-          </button>
-        )}
-      </div>
+          {statusChanged && (
+            <button
+              type="button"
+              onClick={handleSaveStatus}
+              disabled={saving}
+              className="gmao-btn-primary py-2"
+            >
+              {saving ? 'Guardando...' : selectedStatus === 'cerrada' ? 'Cerrar falla...' : 'Guardar estado'}
+            </button>
+          )}
+        </div>
+      )}
+
+      <ResolveIncidentDialog
+        open={resolveOpen}
+        onClose={() => {
+          setResolveOpen(false)
+          setSelectedStatus(incident.status)
+        }}
+        incidentId={incident.id}
+        assetId={incident.asset_id}
+      />
     </div>
   )
 }
