@@ -46,24 +46,15 @@ export function WeekView({ weekStart, onWeekChange, onTaskClick }: WeekViewProps
   return (
     <div>
       {/* Navigation */}
-      <div className="flex items-center justify-between px-4 py-2 bg-card border-b border-border">
-        <button
-          type="button"
-          onClick={() => onWeekChange(-1)}
-          className="p-1.5 text-muted-foreground hover:text-foreground"
-        >
-          <ChevronLeft className="w-5 h-5" />
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-border">
+        <button type="button" onClick={() => onWeekChange(-1)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors">
+          <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm font-medium text-foreground">
-          {format(weekStart, 'dd MMM', { locale: es })} —{' '}
-          {format(days[6], 'dd MMM yyyy', { locale: es })}
+        <span className="gmao-mono text-foreground font-medium">
+          {format(weekStart, 'dd MMM', { locale: es })} — {format(days[6], 'dd MMM yyyy', { locale: es })}
         </span>
-        <button
-          type="button"
-          onClick={() => onWeekChange(1)}
-          className="p-1.5 text-muted-foreground hover:text-foreground"
-        >
-          <ChevronRight className="w-5 h-5" />
+        <button type="button" onClick={() => onWeekChange(1)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors">
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
@@ -81,26 +72,11 @@ export function WeekView({ weekStart, onWeekChange, onTaskClick }: WeekViewProps
                 className="flex-1 min-w-[80px] border-r border-border last:border-r-0"
               >
                 {/* Day header */}
-                <div
-                  className={cn(
-                    'px-2 py-2 text-center border-b border-border',
-                    today && 'bg-primary/10'
-                  )}
-                >
-                  <p
-                    className={cn(
-                      'text-xs font-medium uppercase',
-                      today ? 'text-primary' : 'text-muted-foreground'
-                    )}
-                  >
+                <div className={cn('px-2 py-2 text-center border-b border-border', today && 'bg-primary/[0.06]')}>
+                  <p className={cn('gmao-mono uppercase', today ? 'text-primary' : 'text-muted-foreground/60')}>
                     {format(day, 'EEE', { locale: es })}
                   </p>
-                  <p
-                    className={cn(
-                      'text-sm font-bold mt-0.5',
-                      today ? 'text-primary' : 'text-foreground'
-                    )}
-                  >
+                  <p className={cn('text-sm font-bold mt-0.5 font-display', today ? 'text-primary' : 'text-foreground')}>
                     {format(day, 'd')}
                   </p>
                 </div>

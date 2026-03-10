@@ -7,9 +7,8 @@ import {
   BarChart2,
   QrCode,
   Settings,
-  Wifi,
-  WifiOff,
   RefreshCw,
+  Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSyncContext } from '@/contexts/SyncContext'
@@ -27,20 +26,36 @@ export function Sidebar() {
   const { isOnline, isSyncing, lastSync, triggerSync } = useSyncContext()
 
   return (
-    <aside className="hidden md:flex flex-col w-56 h-screen fixed left-0 top-0 z-50 bg-sidebar text-sidebar-foreground">
-      {/* Logo / Header */}
-      <div className="px-4 py-5 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
-          <Wrench className="w-6 h-6 text-primary" />
-          <div>
-            <p className="text-sm font-bold leading-tight text-sidebar-foreground">GMAO Planta</p>
-            <p className="text-xs text-nav-inactive">Mantenimiento Industrial</p>
+    <aside
+      className="hidden md:flex flex-col w-56 h-screen fixed left-0 top-0 z-50 sidebar-grid"
+      style={{ background: 'var(--bg-header)' }}
+    >
+      {/* Logo */}
+      <div className="px-5 py-5 border-b border-sidebar-border">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
+            <Zap className="w-4 h-4 text-white" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-white leading-tight font-display tracking-wide">
+              GMAO
+            </p>
+            <p className="text-[10px] text-nav-inactive leading-tight tracking-widest uppercase mt-0.5">
+              AGROINSUMOS S.A.S
+            </p>
           </div>
         </div>
       </div>
 
+      {/* Nav label */}
+      <div className="px-5 pt-4 pb-1.5">
+        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-nav-inactive/50 font-display">
+          Navegación
+        </span>
+      </div>
+
       {/* Nav Items */}
-      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-2 py-0.5 space-y-0.5 overflow-y-auto thin-scrollbar">
         {NAV_ITEMS.map(({ label, path, icon: Icon }) => (
           <NavLink
             key={path}
@@ -48,53 +63,69 @@ export function Sidebar() {
             end={path === '/'}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
+                'group flex items-center gap-3 pl-3 pr-4 py-2.5 text-sm transition-all relative rounded-md',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-nav-inactive hover:bg-white/5'
+                  ? 'text-white bg-white/[0.07]'
+                  : 'text-nav-inactive hover:text-white hover:bg-white/[0.04]'
               )
             }
           >
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            <span>{label}</span>
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                )}
+                <Icon
+                  className={cn(
+                    'w-4 h-4 flex-shrink-0 transition-colors',
+                    isActive ? 'text-primary' : 'text-nav-inactive group-hover:text-white/80'
+                  )}
+                />
+                <span className="font-medium">{label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      {/* Footer: estado sync + admin */}
-      <div className="px-3 py-3 space-y-2 border-t border-sidebar-border">
-        {/* Sync status */}
-        <div className="flex items-center justify-between text-xs text-nav-inactive">
-          <div className="flex items-center gap-1.5">
-            {isOnline ? (
-              <Wifi className="w-3.5 h-3.5 text-primary" />
-            ) : (
-              <WifiOff className="w-3.5 h-3.5 text-destructive" />
-            )}
-            <span>{isOnline ? 'Online' : 'Offline'}</span>
+      {/* Footer */}
+      <div className="border-t border-sidebar-border px-3 py-3 space-y-2">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                isOnline ? 'bg-green-400 animate-pulse-dot' : 'bg-red-400'
+              )}
+            />
+            <span className="text-[11px] text-nav-inactive">
+              {isOnline ? 'En línea' : 'Sin conexión'}
+            </span>
           </div>
           <button
             onClick={triggerSync}
             disabled={isSyncing || !isOnline}
-            className="hover:text-sidebar-foreground disabled:opacity-40 transition-colors"
+            className="p-1 rounded text-nav-inactive hover:text-white disabled:opacity-30 transition-colors"
             title="Sincronizar ahora"
           >
-            <RefreshCw className={cn('w-3.5 h-3.5', isSyncing && 'animate-spin')} />
+            <RefreshCw className={cn('w-3 h-3', isSyncing && 'animate-spin')} />
           </button>
         </div>
+
         {lastSync && (
-          <p className="text-[10px] text-muted-foreground">
-            Sync: {lastSync.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
+          <p className="gmao-mono text-[10px] text-nav-inactive/40 px-2">
+            Sync {lastSync.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
           </p>
         )}
 
-        {/* Admin */}
         <NavLink
           to="/admin"
           className={({ isActive }) =>
             cn(
-              'flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors text-nav-inactive',
-              isActive ? 'bg-white/10' : 'hover:bg-white/5'
+              'flex items-center gap-2.5 px-2 py-2 rounded-md text-xs transition-colors',
+              isActive
+                ? 'bg-white/10 text-white'
+                : 'text-nav-inactive hover:text-white hover:bg-white/[0.04]'
             )
           }
         >

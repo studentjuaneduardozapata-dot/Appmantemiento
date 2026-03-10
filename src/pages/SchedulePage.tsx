@@ -42,40 +42,34 @@ export default function SchedulePage() {
         title="Cronograma"
         action={
           <div className="flex items-center gap-2">
-            <div className="flex bg-secondary rounded-lg p-0.5">
+            <div className="flex bg-secondary border border-border rounded-md p-0.5">
               <button
                 type="button"
                 onClick={() => setMode('week')}
-                className={cn(
-                  'p-1.5 rounded-md transition-colors',
-                  mode === 'week' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground'
-                )}
+                className={cn('p-1.5 rounded transition-colors', mode === 'week' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground')}
               >
                 <CalendarDays className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setMode('month')}
-                className={cn(
-                  'p-1.5 rounded-md transition-colors',
-                  mode === 'month' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground'
-                )}
+                className={cn('p-1.5 rounded transition-colors', mode === 'month' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground')}
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
             </div>
             <button
               onClick={() => navigate('/schedule/new-plan')}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-md hover:brightness-90 transition-all font-display tracking-wide"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               Plan
             </button>
           </div>
         }
       />
 
-      <div className="bg-card border border-border mx-0 mt-0">
+      <div className="gmao-card mx-0 mt-0 rounded-none border-x-0 border-b-0">
         {mode === 'week' ? (
           <WeekView
             weekStart={weekAnchor}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,77 +6,76 @@
 
 @layer base {
   :root {
-    /* ═══════════════════════════════════════════════════
-       DESIGN TOKENS — Edita aquí para cambiar el tema
-       ═══════════════════════════════════════════════════ */
-    --bg-main:     #f5f6f8;   /* fondo principal de la app */
-    --bg-header:   #18181b;   /* sidebar y barra superior  */
-    --text-main:   #18181b;   /* texto principal           */
-    --text-header: #e4e4e7;   /* texto en sidebar / header */
-    --primary:     #6ab04c;   /* verde GMAO                */
+    /* ═══════════════════════════════════════════════
+       FORGE — Industrial Precision Theme
+       Primary: Orange (#F97316) — Safety / Industrial
+       Sidebar: Deep Navy (#0F1623)
+       Background: Cool Blue-Gray (#ECEEF4)
+       ═══════════════════════════════════════════════ */
 
-    /* Nav */
-    --nav-inactive:        #a1a1aa;   /* zinc-400 — items inactivos */
+    /* Core brand */
+    --bg-main:     #ECEEF4;
+    --bg-header:   #0F1623;
+    --text-main:   #0D1421;
+    --text-header: #BDC8DC;
+    --primary:     #5ea848;
 
-    /* Surface elevation */
-    --surface:             #ffffff;   /* superficie elevada sobre bg-main */
+    /* Surfaces */
+    --surface:     #FFFFFF;
+    --nav-inactive: #8294B0;
 
     /* Shadow */
-    --shadow-card:         0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07);
+    --shadow-card: 0 1px 3px 0 rgb(13 20 33 / 0.07), 0 1px 2px -1px rgb(13 20 33 / 0.05);
+    --shadow-md:   0 4px 16px 0 rgb(13 20 33 / 0.10);
+    --shadow-lg:   0 8px 32px 0 rgb(13 20 33 / 0.14);
 
-    /* ═══════════════════════════════════════════════════
-       SHADCN / TAILWIND — mapeados a los tokens
-       ═══════════════════════════════════════════════════ */
-
-    /* Base */
+    /* ═══ Shadcn tokens ═══ */
     --background:              var(--bg-main);
     --foreground:              var(--text-main);
 
-    /* Card — blanco sobre fondo gris para elevación real */
-    --card:                    #ffffff;
-    --card-foreground:         #18181b;
+    --card:                    #FFFFFF;
+    --card-foreground:         var(--text-main);
 
-    /* Popover */
-    --popover:                 #ffffff;
-    --popover-foreground:      #1a1a1a;
+    --popover:                 #FFFFFF;
+    --popover-foreground:      var(--text-main);
 
-    /* Primary */
-    --primary-foreground:      var(--text-header);
+    --primary-foreground:      #FFFFFF;
 
-    /* Secondary */
-    --secondary:               #f1f1f3;
-    --secondary-foreground:    #27272a;
+    --secondary:               #E6E9F2;
+    --secondary-foreground:    var(--text-main);
 
-    /* Muted */
-    --muted:                   #e8e8ea;
-    --muted-foreground:        #71717a;
+    --muted:                   #E2E5EF;
+    --muted-foreground:        #6B7A99;
 
-    /* Accent */
-    --accent:                  #e8e8ea;
+    --accent:                  #ECEEF4;
     --accent-foreground:       var(--text-main);
 
-    /* Destructive */
-    --destructive:             #d12323;
-    --destructive-foreground:  #ffffff;
+    --destructive:             #DC2626;
+    --destructive-foreground:  #FFFFFF;
 
-    /* Border / Input / Ring */
-    --border:                  #e2e3e8;
-    --input:                   #ffffff;
-    --ring:                    var(--primary);   /* focus ring verde GMAO */
+    --border:                  #D3D7E8;
+    --input:                   #FFFFFF;
+    --ring:                    #F97316;
 
-    --radius: 0.5rem;
+    --radius: 0.375rem;
 
     /* Sidebar */
-    --sidebar-background:      var(--bg-header);
-    --sidebar-foreground:      var(--text-header);
-    --sidebar-border:          #27272a;
+    --sidebar-background: var(--bg-header);
+    --sidebar-foreground: var(--text-header);
+    --sidebar-border:     #1E2D45;
+
+    /* Status semantics */
+    --status-red:    #DC2626;
+    --status-amber:  #D97706;
+    --status-green:  #16A34A;
+    --status-blue:   #2563EB;
 
     /* Charts */
-    --chart-1: #6ab04c;   /* verde   */
-    --chart-2: #f9cb24;   /* amarillo */
-    --chart-3: #eb4e4b;   /* rojo    */
-    --chart-4: #9f67e0;   /* violeta */
-    --chart-5: #686ce0;   /* índigo  */
+    --chart-1: #F97316;
+    --chart-2: #2563EB;
+    --chart-3: #DC2626;
+    --chart-4: #16A34A;
+    --chart-5: #7C3AED;
   }
 }
 
@@ -84,105 +83,132 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
-    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "cv11" 1, "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Syne', system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
-/* Prevenir scroll horizontal en mobile */
+/* Prevenir scroll horizontal */
 html, body {
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Safe area para notch/nav bar en mobile */
+/* Safe area móvil */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Ocultar scrollbar manteniendo scroll funcional */
+/* Ocultar scrollbar */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ─── Utility classes GMAO ───────────────────────────────────────────────── */
+/* Thin scrollbar */
+.thin-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.thin-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.thin-scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Sidebar texture — subtle grid */
+.sidebar-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ─── GMAO Component Layer ─────────────────────────────────────────── */
 
 @layer components {
-  /* Input unificado — reemplaza 8+ variantes de border-gray-200 rounded-lg */
+
+  /* ── Inputs ── */
   .gmao-input {
-    @apply w-full px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground
+    @apply w-full px-3 py-2.5 text-sm border border-border rounded-md bg-white text-foreground
            placeholder:text-muted-foreground
-           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-primary
+           disabled:opacity-50 disabled:cursor-not-allowed transition-all;
   }
 
-  /* Variante compacta para filtros y campos en tabla */
   .gmao-input-sm {
-    @apply px-2.5 py-1.5 text-xs border border-border rounded-lg bg-input text-foreground
+    @apply px-2.5 py-1.5 text-xs border border-border rounded-md bg-white text-foreground
            placeholder:text-muted-foreground
-           focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent
-           disabled:opacity-50;
+           focus:outline-none focus:ring-1 focus:ring-orange-400/30 focus:border-primary
+           disabled:opacity-50 transition-all;
   }
 
-  /* Select — igual a gmao-input para elementos <select> */
   .gmao-select {
-    @apply w-full px-3 py-2 text-sm border border-border rounded-lg bg-input text-foreground
-           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-full px-3 py-2.5 text-sm border border-border rounded-md bg-white text-foreground
+           focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-primary
+           disabled:opacity-50 disabled:cursor-not-allowed transition-all;
   }
 
-  /* Etiqueta de campo de formulario */
+  /* ── Labels ── */
   .gmao-label {
-    @apply block text-sm font-medium text-foreground mb-1;
+    @apply block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5;
+    font-family: 'Syne', sans-serif;
   }
 
-  /* Mensaje de error de validación */
   .gmao-error {
     @apply text-xs text-destructive mt-1;
   }
 
-  /* Botón CTA primario — ancho completo */
+  /* ── Buttons ── */
   .gmao-btn-primary {
-    @apply w-full py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-lg
-           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
-    &:not(:disabled):hover { filter: brightness(0.92); }
+    @apply w-full py-2.5 bg-primary text-white text-sm font-semibold rounded-md
+           disabled:opacity-50 disabled:cursor-not-allowed transition-all
+           active:scale-[0.98];
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.01em;
+    &:not(:disabled):hover { filter: brightness(0.93); }
   }
 
-  /* Botón CTA destructivo — falla, eliminación */
   .gmao-btn-destructive {
-    @apply w-full py-3 bg-destructive text-destructive-foreground text-sm font-semibold rounded-lg
-           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply w-full py-2.5 bg-destructive text-white text-sm font-semibold rounded-md
+           disabled:opacity-50 disabled:cursor-not-allowed transition-all
+           active:scale-[0.98];
+    font-family: 'Syne', sans-serif;
     &:not(:disabled):hover { filter: brightness(0.92); }
   }
 
-  /* Botón secundario / cancelar */
   .gmao-btn-secondary {
-    @apply px-4 py-2 text-sm font-medium text-foreground bg-muted rounded-lg transition-colors;
-    &:hover { filter: brightness(0.95); }
+    @apply px-4 py-2 text-sm font-medium text-foreground bg-secondary border border-border rounded-md transition-colors;
+    &:hover { @apply bg-accent; }
   }
 
-  /* Fila de lista clickeable con separador */
+  /* ── List rows ── */
   .gmao-list-row {
-    @apply w-full text-left flex items-center gap-3 px-4 py-3
-           border-b border-border last:border-0 transition-colors;
-    &:hover { background-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+    @apply w-full text-left flex items-center gap-3 px-4 py-3.5
+           border-b border-border last:border-0 transition-colors bg-white;
+    &:hover { background-color: var(--accent); }
   }
 
-  /* Tarjeta con elevación sutil */
+  /* ── Cards ── */
   .gmao-card {
-    @apply bg-card border border-border rounded-xl overflow-hidden;
+    @apply bg-white border border-border rounded-lg overflow-hidden;
     box-shadow: var(--shadow-card);
   }
 
-  /* Título de sección dentro de páginas */
+  /* ── Section titles ── */
   .gmao-section-title {
-    @apply text-sm font-semibold text-foreground;
+    @apply text-[11px] font-bold uppercase tracking-wider text-muted-foreground;
+    font-family: 'Syne', sans-serif;
   }
 
-  /* Tab individual */
+  /* ── Tabs ── */
   .gmao-tab {
-    @apply flex-1 min-w-[80px] py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors;
+    @apply flex-1 min-w-[80px] py-2.5 text-xs font-semibold whitespace-nowrap
+           border-b-2 transition-colors;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.03em;
   }
 
   .gmao-tab-active {
@@ -193,16 +219,57 @@ html, body {
     @apply border-transparent text-muted-foreground hover:text-foreground;
   }
 
-  /* Toggle de período (historial, resumen) */
+  /* ── Period buttons ── */
   .gmao-period-btn {
-    @apply flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors;
+    @apply flex-1 text-xs font-semibold py-2 rounded-md border transition-colors;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.02em;
   }
 
   .gmao-period-btn-active {
-    @apply bg-primary text-primary-foreground border-primary;
+    @apply bg-primary text-white border-primary;
   }
 
   .gmao-period-btn-inactive {
-    @apply bg-input text-foreground border-border hover:bg-accent;
+    @apply bg-white text-foreground border-border hover:bg-accent;
+  }
+
+  /* ── Status strips (left border) ── */
+  .strip-red    { @apply border-l-[3px] border-l-red-500; }
+  .strip-amber  { @apply border-l-[3px] border-l-amber-500; }
+  .strip-green  { @apply border-l-[3px] border-l-green-500; }
+  .strip-blue   { @apply border-l-[3px] border-l-blue-500; }
+  .strip-gray   { @apply border-l-[3px] border-l-gray-300; }
+  .strip-orange { @apply border-l-[3px] border-l-orange-500; }
+
+  /* ── Badges ── */
+  .gmao-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  .gmao-badge-red    { @apply bg-red-50 text-red-700 border border-red-200; }
+  .gmao-badge-amber  { @apply bg-amber-50 text-amber-700 border border-amber-200; }
+  .gmao-badge-green  { @apply bg-green-50 text-green-700 border border-green-200; }
+  .gmao-badge-blue   { @apply bg-blue-50 text-blue-700 border border-blue-200; }
+  .gmao-badge-gray   { @apply bg-gray-100 text-gray-600 border border-gray-200; }
+  .gmao-badge-orange { @apply bg-orange-50 text-orange-700 border border-orange-200; }
+
+  /* ── Mono data display ── */
+  .gmao-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    @apply text-xs;
+  }
+
+  /* ── Stat number (big KPI display) ── */
+  .gmao-stat-num {
+    font-family: 'Syne', sans-serif;
+    @apply text-3xl font-bold leading-none tracking-tight;
+  }
+
+  /* ── Display heading ── */
+  .font-display {
+    font-family: 'Syne', sans-serif;
   }
 }

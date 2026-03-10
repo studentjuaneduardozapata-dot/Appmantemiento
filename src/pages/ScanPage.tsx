@@ -62,16 +62,13 @@ export default function ScanPage() {
   }, [navigate])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PageHeader title="Escanear QR" />
-      <div className="px-4 py-4">
-        <p className="text-sm text-gray-500 mb-4 text-center">
-          Apunta la cámara al código QR del activo
-        </p>
+    <div className="min-h-screen bg-background">
+      <PageHeader title="Escanear QR" subtitle="Apunta la cámara al código QR del activo" />
+      <div className="px-4 py-4 max-w-sm mx-auto">
         <div
           ref={mountRef}
           id="qr-reader"
-          className="bg-white rounded-xl overflow-hidden border border-gray-200"
+          className="gmao-card overflow-hidden"
         />
       </div>
     </div>
