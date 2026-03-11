@@ -13,7 +13,7 @@ import {
 } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useTasksInRange } from '@/hooks/useMaintenanceTasks'
+import { useTasksInRange, useOverdueTasks } from '@/hooks/useMaintenanceTasks'
 import type { Incident } from '@/lib/db'
 import { cn } from '@/lib/utils'
 
@@ -55,6 +55,7 @@ export function MonthView({ month, onMonthChange, onDayClick, incidents = [] }: 
   const from = format(monthStart, 'yyyy-MM-dd')
   const to = format(monthEnd, 'yyyy-MM-dd')
   const tasks = useTasksInRange(from, to)
+  const overdueTasks = useOverdueTasks()
 
   const tasksByDay = useMemo(() => {
     const map = new Map<string, typeof tasks>()
@@ -63,8 +64,21 @@ export function MonthView({ month, onMonthChange, onDayClick, incidents = [] }: 
       if (!map.has(key)) map.set(key, [])
       map.get(key)!.push(task)
     }
+    // Add overdue tasks from before this month to today's cell
+    const todayKey = format(new Date(), 'yyyy-MM-dd')
+    if (todayKey >= from && todayKey <= to) {
+      for (const task of overdueTasks ?? []) {
+        if (task.next_due_date < from) {
+          if (!map.has(todayKey)) map.set(todayKey, [])
+          const dayList = map.get(todayKey)!
+          if (!dayList.some((t) => t.id === task.id)) {
+            dayList.push(task)
+          }
+        }
+      }
+    }
     return map
-  }, [tasks])
+  }, [tasks, overdueTasks, from, to])
 
   // Agrupar incidentes por día usando la fecha local correcta:
   // - Open/in_progress: día en que se reportó (reported_at)

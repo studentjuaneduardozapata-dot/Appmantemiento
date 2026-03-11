@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { format, addDays, startOfMonth, endOfMonth, addMonths } from 'date-fns'
+import { format, addDays, startOfMonth, endOfMonth, addMonths, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import {
   AlertTriangle,
@@ -14,6 +14,7 @@ import {
   Settings,
   Plus,
   Zap,
+  ListChecks,
 } from 'lucide-react'
 import { db } from '@/lib/db'
 import type { MaintenanceTask, Incident } from '@/lib/db'
@@ -24,6 +25,18 @@ import { DayDetailModal } from '@/components/maintenance/DayDetailModal'
 import { useIncidentsInRange } from '@/hooks/useIncidents'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getIncidentDayKey(inc: Incident): string | null {
+  const raw = inc.status === 'cerrada'
+    ? (inc.closed_at ?? inc.reported_at)
+    : inc.reported_at
+  if (!raw) return null
+  try {
+    return format(parseISO(raw), 'yyyy-MM-dd')
+  } catch {
+    return raw.slice(0, 10)
+  }
+}
 
 function todayStr(): string {
   return format(new Date(), 'yyyy-MM-dd')
@@ -201,6 +214,11 @@ export default function TodayPage() {
   const planMap = useMemo(() => new Map(allPlans?.map((p) => [p.id, p.title]) ?? []), [allPlans])
   const assetMap = useMemo(() => new Map(allAssets?.map((a) => [a.id, a.name]) ?? []), [allAssets])
 
+  const selectedDayIncidents = useMemo(() => {
+    if (!selectedDay || !calendarIncidents) return []
+    return calendarIncidents.filter((inc) => getIncidentDayKey(inc) === selectedDay)
+  }, [selectedDay, calendarIncidents])
+
   const isLoading =
     overdueTasks === undefined ||
     todayTasks === undefined ||
@@ -354,13 +372,22 @@ export default function TodayPage() {
         <div className="pt-2">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-bold text-foreground">Cronograma</h2>
-            <button
-              onClick={() => navigate('/schedule/new-plan')}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
-            >
-              <Plus className="w-4 h-4" />
-              Plan
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/schedule/preventive')}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors"
+              >
+                <ListChecks className="w-3.5 h-3.5" />
+                Preventivos
+              </button>
+              <button
+                onClick={() => navigate('/schedule/new-plan')}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
+              >
+                <Plus className="w-4 h-4" />
+                Plan
+              </button>
+            </div>
           </div>
 
           <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -376,6 +403,7 @@ export default function TodayPage() {
         <DayDetailModal
           date={selectedDay}
           onClose={() => setSelectedDay(null)}
+          incidents={selectedDayIncidents}
         />
 
         {/* Spacer para FAB */}

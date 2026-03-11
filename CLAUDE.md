@@ -59,6 +59,7 @@ Campo `completed_step_ids` en `maintenance_logs` — solo Dexie, no en Supabase.
 /assets/:id/edit → AssetEditPage
 /assets/area/:id → AreaDetailPage
 /schedule       → SchedulePage
+/schedule/preventive → PreventivePage
 /schedule/new-plan → NewPlanPage
 /schedule/plan/:id → PlanDetailPage
 /schedule/plan/:id/edit → EditPlanPage
@@ -86,6 +87,11 @@ npm run lint         # linting
 - Respuesta: código + 1 línea confirmación. Sin explicaciones largas.
 - Soft-delete con `deleted_at` — nunca DELETE físico en tablas principales
 - `push` usa `upsert` — idempotente, last-write-wins
+
+## Comportamiento TodayPage (cronograma embebido)
+- Botones header: "Preventivos" (outline → /schedule/preventive) + "+ Plan" (→ /schedule/new-plan)
+- `DayDetailModal` recibe `incidents` filtrados por día con `getIncidentDayKey` (misma lógica que MonthView: cerrados=closed_at, abiertos=reported_at)
+- `DayDetailModal` al seleccionar HOY: incluye overdue tasks (status=pendiente, next_due_date<hoy) además de las tareas del día
 
 ## Contexto del negocio
 GMAO para planta procesadora de maíz. 1-4 usuarios sin login.

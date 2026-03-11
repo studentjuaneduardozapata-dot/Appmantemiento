@@ -101,7 +101,7 @@ src/
 │   ├── AdminPage.tsx
 │   ├── assets/               # AssetNewPage, AssetDetailPage, AssetEditPage, AreaDetailPage
 │   ├── incidents/            # IncidentNewPage, IncidentDetailPage
-│   └── schedule/             # NewPlanPage, PlanDetailPage, EditPlanPage
+│   └── schedule/             # NewPlanPage, PlanDetailPage, EditPlanPage, PreventivePage
 ├── components/
 │   ├── ui/                   # Primitivos shadcn (button, dialog, select, etc.)
 │   ├── assets/
@@ -285,8 +285,31 @@ Dos vistas navegables:
 - Semanal: 7 días con tareas por día
 - Mensual: calendario con indicadores
 
-Código de colores:
-- 🔴 Vencido | 🟡 Vence hoy/mañana | 🟢 Programado | ⚫ Completado
+El header de `/schedule` incluye dos acciones rápidas:
+- Botón "Preventivos" → `/schedule/preventive`
+- Botón "Plan" → `/schedule/new-plan`
+
+El modal de detalle de día (`DayDetailModal`) muestra:
+- Tareas con `next_due_date` exacto al día seleccionado
+- Si el día es HOY: también incluye tareas vencidas (`status=pendiente, next_due_date < hoy`) de días anteriores
+
+El `MonthView` agrega al día de HOY los puntos indicadores de tareas vencidas provenientes de meses anteriores (no visibles en otras celdas del mes actual).
+
+### 10.10 Vista de planes preventivos
+`/schedule/preventive` — listado centralizado de todos los planes de tipo `preventivo`.
+- Agrupados por categoría de activo usando el componente `Accordion` (`src/components/ui/accordion.tsx`).
+- Cada `AccordionItem` representa una categoría (colapsable). Muestra nombre + contador de planes.
+- Dentro de cada categoría, cada plan muestra:
+  - Título (botón → `/schedule/plan/:id`)
+  - Activo(s) vinculado(s): nombres separados por coma (máx 2, luego "+N más")
+  - **Todas las `next_due_date` únicas** de las tareas del plan como badges con código de colores:
+    - 🔴 Rojo: fecha vencida (antes de hoy)
+    - 🟡 Amarillo: hoy o mañana
+    - 🟢 Verde: futura
+    - ⚫ Gris: completada
+  - Acciones: editar (→ `/schedule/plan/:id/edit`) y eliminar (con confirmación).
+- Los datos se actualizan en tiempo real vía `useLiveQuery` (tasks + plans + assets).
+- Botón `+` en el header para crear un nuevo plan.
 
 ### 10.8 Pantalla de hoy
 Primera pantalla al abrir la app. Orden de prioridad:
@@ -294,6 +317,12 @@ Primera pantalla al abrir la app. Orden de prioridad:
 2. Tareas de hoy (amarillo)
 3. Fallas abiertas
 4. Tareas de esta semana (verde)
+
+El header del cronograma en `/` incluye dos acciones rápidas:
+- Botón "Preventivos" (outline) → `/schedule/preventive`
+- Botón "+ Plan" → `/schedule/new-plan`
+
+El modal de detalle de día en `TodayPage` recibe los incidentes del día seleccionado (filtrados desde `calendarIncidents` usando `getIncidentDayKey`: cerrados por `closed_at`, abiertos/en_progreso por `reported_at`), garantizando consistencia con los puntos indicadores del `MonthView`.
 
 ### 10.9 Edición posterior
 Permite completar tareas con fecha retroactiva y editar registros
@@ -357,7 +386,7 @@ Menú principal (bottom nav mobile, sidebar desktop):
 
 Rutas adicionales:
 - `/assets/new`, `/assets/:id`, `/assets/:id/edit`, `/assets/area/:id`
-- `/schedule/new-plan`, `/schedule/plan/:id`, `/schedule/plan/:id/edit`
+- `/schedule/new-plan`, `/schedule/plan/:id`, `/schedule/plan/:id/edit`, `/schedule/preventive`
 - `/incidents/new`, `/incidents/:id`
 - `/admin` — Panel de administración (acceso por PIN)
 

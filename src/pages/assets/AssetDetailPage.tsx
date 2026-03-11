@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Edit2, QrCode, Trash2, ArrowLeft, Tag, MapPin, Wrench, AlertTriangle } from 'lucide-react'
+import { Edit2, QrCode, Trash2, ArrowLeft, Tag, MapPin, Wrench, AlertTriangle, Plus, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { db } from '@/lib/db'
@@ -21,10 +21,9 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   fuera_de_servicio: { label: 'Fuera de servicio', className: 'bg-red-100 text-red-700' },
 }
 
-const TASK_STATUS: Record<string, { label: string; className: string }> = {
-  pendiente: { label: 'Pendiente', className: 'bg-gray-100 text-gray-600' },
-  vencida: { label: 'Vencida', className: 'bg-red-100 text-red-700' },
-  completada: { label: 'Completada', className: 'bg-green-100 text-green-700' },
+const PLAN_TYPE: Record<string, { label: string; className: string }> = {
+  preventivo: { label: 'Preventivo', className: 'bg-blue-100 text-blue-700' },
+  unico: { label: 'Único', className: 'bg-purple-100 text-purple-700' },
 }
 
 const INCIDENT_TYPE: Record<string, { label: string; className: string }> = {
@@ -61,19 +60,17 @@ export default function AssetDetailPage() {
     [asset?.category_id]
   )
 
-  // Maintenance tasks linked via plans that include this asset
-  const tasks = useLiveQuery(async () => {
-    if (!id) return []
-    const plans = await db.maintenance_plans
-      .filter((p) => !p.deleted_at && p.asset_ids.includes(id))
-      .toArray()
-    const planIds = plans.map((p) => p.id)
-    if (!planIds.length) return []
-    const all = await db.maintenance_tasks
-      .filter((t) => !t.deleted_at && planIds.includes(t.plan_id))
-      .toArray()
-    return all.sort((a, b) => a.next_due_date.localeCompare(b.next_due_date))
-  }, [id])
+  // Plans linked to this asset
+  const linkedPlans = useLiveQuery(
+    async () => {
+      if (!id) return [] as import('@/lib/db').MaintenancePlan[]
+      const arr = await db.maintenance_plans
+        .filter((p) => !p.deleted_at && p.asset_ids.includes(id))
+        .toArray()
+      return arr.sort((a, b) => a.title.localeCompare(b.title))
+    },
+    [id]
+  )
 
   // Incident history for this asset
   const assetIncidents = useLiveQuery(
@@ -223,32 +220,50 @@ export default function AssetDetailPage() {
         <SubAssetsList parentId={id!} />
       </div>
 
-      {/* Mantenimientos Preventivos */}
+      {/* Planes de Mantenimiento */}
       <div className="mx-4 mt-4">
-        <h2 className="gmao-section-title mb-2 px-1 flex items-center gap-1.5">
-          <Wrench className="w-4 h-4" />
-          Mantenimientos Preventivos
-        </h2>
-        {!tasks || tasks.length === 0 ? (
+        <div className="flex items-center justify-between mb-2 px-1">
+          <h2 className="gmao-section-title flex items-center gap-1.5">
+            <Wrench className="w-4 h-4" />
+            Planes de Mantenimiento
+          </h2>
+          <button
+            type="button"
+            onClick={() => navigate(`/schedule/new-plan?assetId=${id}`)}
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Añadir plan
+          </button>
+        </div>
+        {!linkedPlans || linkedPlans.length === 0 ? (
           <div className="bg-card rounded-lg border border-border px-4 py-4 text-center">
-            <p className="text-sm text-muted-foreground">Sin tareas asociadas</p>
+            <p className="text-sm text-muted-foreground">Sin planes asociados</p>
           </div>
         ) : (
           <div className="bg-card rounded-lg border border-border divide-y divide-border">
-            {tasks.map((task) => {
-              const ts = TASK_STATUS[task.status] ?? TASK_STATUS.pendiente
+            {linkedPlans.map((plan) => {
+              const pt = PLAN_TYPE[plan.type] ?? PLAN_TYPE.preventivo
               return (
-                <div key={task.id} className="flex items-start justify-between px-4 py-3 gap-3">
+                <button
+                  key={plan.id}
+                  type="button"
+                  onClick={() => navigate(`/schedule/plan/${plan.id}`)}
+                  className="w-full flex items-center justify-between px-4 py-3 gap-3 text-left hover:bg-accent/50"
+                >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{task.description}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {format(new Date(task.next_due_date), 'dd MMM yyyy', { locale: es })}
-                    </p>
+                    <p className="text-sm font-medium text-foreground truncate">{plan.title}</p>
+                    {plan.description && (
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">{plan.description}</p>
+                    )}
                   </div>
-                  <span className={cn('text-xs px-2 py-1 rounded-full font-medium flex-shrink-0', ts.className)}>
-                    {ts.label}
-                  </span>
-                </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium', pt.className)}>
+                      {pt.label}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                </button>
               )
             })}
           </div>

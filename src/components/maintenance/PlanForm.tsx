@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -46,6 +46,7 @@ interface PlanFormProps {
   isSubmitting: boolean
   initialValues?: PlanFormInitialValues
   submitLabel?: string
+  preselectedAssetId?: string
 }
 
 // ─── TaskStepsSection (sub-component) ─────────────────────────────────────────
@@ -111,13 +112,22 @@ function TaskStepsSection({ taskIndex, control, register }: TaskStepsSectionProp
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export function PlanForm({ onSubmit, isSubmitting, initialValues, submitLabel }: PlanFormProps) {
+export function PlanForm({ onSubmit, isSubmitting, initialValues, submitLabel, preselectedAssetId }: PlanFormProps) {
   const assets = useLiveQuery(() => db.assets.filter((a) => !a.deleted_at).toArray())
   const areas = useLiveQuery(() => db.areas.orderBy('sort_order').filter((a) => !a.deleted_at).toArray())
   const allCategories = useLiveQuery(() => db.asset_categories.filter((c) => !c.deleted_at).toArray())
 
   const [filterAreaId, setFilterAreaId] = useState('')
   const [filterCategoryId, setFilterCategoryId] = useState('')
+
+  // Pre-set area filter when arriving from an asset context
+  useEffect(() => {
+    if (!preselectedAssetId || !assets || filterAreaId) return
+    const asset = assets.find((a) => a.id === preselectedAssetId)
+    if (asset) {
+      setFilterAreaId(asset.area_id)
+    }
+  }, [preselectedAssetId, assets])
 
   const availableCategories = useMemo(() => {
     if (!assets || !allCategories) return []

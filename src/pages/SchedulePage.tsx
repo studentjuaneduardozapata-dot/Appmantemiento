@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { startOfMonth, addMonths, endOfMonth, format, parseISO } from 'date-fns'
-import { Plus } from 'lucide-react'
+import { Plus, ListChecks } from 'lucide-react'
 import { MonthView } from '@/components/maintenance/MonthView'
 import { DayDetailModal } from '@/components/maintenance/DayDetailModal'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -51,13 +51,22 @@ export default function SchedulePage() {
       <PageHeader
         title="Cronograma"
         action={
-          <button
-            onClick={() => navigate('/schedule/new-plan')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-md hover:brightness-90 transition-all font-display tracking-wide"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Plan
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/schedule/preventive')}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary border border-primary/30 rounded-md hover:bg-primary/5 transition-all font-display tracking-wide"
+            >
+              <ListChecks className="w-3.5 h-3.5" />
+              Preventivos
+            </button>
+            <button
+              onClick={() => navigate('/schedule/new-plan')}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-md hover:brightness-90 transition-all font-display tracking-wide"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Plan
+            </button>
+          </div>
         }
       />
 

@@ -5,7 +5,7 @@ import { es } from 'date-fns/locale'
 import { X, CalendarX, AlertTriangle } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
-import type { Incident } from '@/lib/db'
+import type { Incident, MaintenanceTask } from '@/lib/db'
 import { useTasksInRange } from '@/hooks/useMaintenanceTasks'
 import { TaskRow } from './TaskRow'
 import { cn } from '@/lib/utils'
@@ -39,6 +39,20 @@ export function DayDetailModal({ date, onClose, incidents = [] }: DayDetailModal
   const plans = useLiveQuery(() => db.maintenance_plans.toArray())
   const assets = useLiveQuery(() => db.assets.toArray())
 
+  // When viewing today, also fetch overdue tasks (due before today, still pending)
+  const overdueTasks = useLiveQuery(
+    async () => {
+      const todayStr = format(new Date(), 'yyyy-MM-dd')
+      if (date !== todayStr) return [] as MaintenanceTask[]
+      return db.maintenance_tasks
+        .where('next_due_date')
+        .below(todayStr)
+        .and((t) => t.status === 'pendiente' && !t.deleted_at)
+        .toArray()
+    },
+    [date]
+  )
+
   const planMap = useMemo(
     () => new Map(plans?.map((p) => [p.id, p]) ?? []),
     [plans]
@@ -49,12 +63,21 @@ export function DayDetailModal({ date, onClose, incidents = [] }: DayDetailModal
     [assets]
   )
 
+  // Merge overdue tasks (sorted oldest first) + tasks due on this day
+  const displayTasks = useMemo<MaintenanceTask[]>(() => {
+    const regular = tasks ?? []
+    const overdue = overdueTasks ?? []
+    return [...overdue, ...regular].sort(
+      (a, b) => a.next_due_date.localeCompare(b.next_due_date)
+    )
+  }, [tasks, overdueTasks])
+
   const title = date
     ? format(parseISO(date + 'T00:00:00'), "EEEE d 'de' MMMM", { locale: es })
     : ''
 
-  const hasNoData =
-    tasks !== undefined && tasks.length === 0 && incidents.length === 0
+  const isLoading = tasks === undefined || overdueTasks === undefined
+  const hasNoData = !isLoading && displayTasks.length === 0 && incidents.length === 0
 
   return (
     <Dialog.Root open={!!date} onOpenChange={(o) => !o && onClose()}>
@@ -75,7 +98,7 @@ export function DayDetailModal({ date, onClose, incidents = [] }: DayDetailModal
 
           {/* Content */}
           <div className="overflow-y-auto flex-1">
-            {tasks === undefined ? (
+            {isLoading ? (
               <div className="flex items-center justify-center py-10">
                 <p className="text-sm text-muted-foreground">Cargando...</p>
               </div>
@@ -87,13 +110,13 @@ export function DayDetailModal({ date, onClose, incidents = [] }: DayDetailModal
             ) : (
               <div>
                 {/* Sección de tareas de mantenimiento */}
-                {tasks.length > 0 && (
+                {displayTasks.length > 0 && (
                   <div>
                     <p className="px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground bg-secondary/40 border-b border-border">
                       Mantenimiento
                     </p>
                     <div className="divide-y divide-border">
-                      {tasks.map((task) => {
+                      {displayTasks.map((task) => {
                         const plan = planMap.get(task.plan_id)
                         if (!plan) return null
                         return (

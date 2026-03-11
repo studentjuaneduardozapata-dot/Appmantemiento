@@ -8,6 +8,7 @@ import AssetDetailPage from '@/pages/assets/AssetDetailPage'
 import AssetEditPage from '@/pages/assets/AssetEditPage'
 import SchedulePage from '@/pages/SchedulePage'
 import NewPlanPage from '@/pages/schedule/NewPlanPage'
+import PreventivePage from '@/pages/schedule/PreventivePage'
 import PlanDetailPage from '@/pages/schedule/PlanDetailPage'
 import EditPlanPage from '@/pages/schedule/EditPlanPage'
 import IncidentsPage from '@/pages/IncidentsPage'
@@ -32,6 +33,7 @@ export function AppRouter() {
 
         {/* Schedule */}
         <Route path="schedule" element={<SchedulePage />} />
+        <Route path="schedule/preventive" element={<PreventivePage />} />
         <Route path="schedule/new-plan" element={<NewPlanPage />} />
         <Route path="schedule/plan/:id" element={<PlanDetailPage />} />
         <Route path="schedule/plan/:id/edit" element={<EditPlanPage />} />

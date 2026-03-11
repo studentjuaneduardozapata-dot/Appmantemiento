@@ -11,7 +11,6 @@ import { enqueue } from '@/lib/sync/syncQueue'
 export function useMaintenancePlans(): MaintenancePlan[] | undefined {
   return useLiveQuery(() =>
     db.maintenance_plans
-      .orderBy('created_at')
       .filter((p) => !p.deleted_at)
       .toArray()
   )
