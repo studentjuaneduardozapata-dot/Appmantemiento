@@ -23,6 +23,7 @@ Prioridades absolutas:
 |------|-----------|
 | UI | React 18 + TypeScript |
 | Build | Vite + vite-plugin-pwa (Service Worker / Workbox) |
+| Hosting | Vercel (con `vercel.json` para SPA rewriting) |
 | Estilos | Tailwind CSS 3 + shadcn/ui (Radix primitives) |
 | DB local | Dexie v4 (IndexedDB) + dexie-react-hooks (useLiveQuery) |
 | Estado UI | Zustand |
@@ -354,6 +355,8 @@ Rutas adicionales:
 - `/schedule/new-plan`, `/schedule/plan/:id`, `/schedule/plan/:id/edit`
 - `/incidents/new`, `/incidents/:id`
 - `/admin` — Panel de administración (acceso por PIN)
+
+*Nota:* El hosteo en Vercel requiere configuración SPA mediante rules en `vercel.json` apuntando el wildcard hacia `/index.html`.
 
 ---
 

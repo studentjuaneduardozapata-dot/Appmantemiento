@@ -4,7 +4,7 @@
 ## Stack
 React 18 + TypeScript | Vite + vite-plugin-pwa (Workbox)
 Tailwind 3 + shadcn/ui (Radix) | Dexie v4 + dexie-react-hooks | Zustand
-Supabase v2 (Postgres + Storage + Realtime)
+Supabase v2 (Postgres + Storage + Realtime) | Vercel (vercel.json SPA rewrite)
 React Router v6 | react-hook-form + zod | date-fns v3 | sonner
 qrcode | html5-qrcode | lucide-react
 
