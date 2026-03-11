@@ -33,14 +33,14 @@ Dexie versión actual: **7**.
 Campo `completed_step_ids` en `maintenance_logs` — solo Dexie, no en Supabase.
 
 ## Sync Engine (`src/lib/sync/`)
-- `syncManager.ts` — orquestador: ciclo cada 3 min + reconexión
-- `syncQueue.ts` — push con upsert, reintentos (máx 3), reconciliación 23505
-- `initialSync.ts` — pull incremental 9 tablas, `pullDeletedRecords`
-- `realtimeSync.ts` — suscripción Postgres Realtime a 8 tablas (no task_steps)
+- `syncManager.ts` — orquestador: ciclo cada 3 min + reconexión + heartbeat cada 30 min + `pushOnly()` hot path
+- `syncQueue.ts` — `enqueue()` dispara push debounced (300ms), backoff exponencial (1s→60s), manejo 429, `requeueRecoverableFailed()`, reconciliación 23505
+- `initialSync.ts` — pull transaccional 9 tablas (timestamp solo avanza si tablas críticas OK), `performDataHeartbeat()`, `pullDeletedRecords`
+- `realtimeSync.ts` — suscripción Postgres Realtime a 9 tablas (incluye task_steps), backoff reconexión 10s→5min
 - `blobSync.ts` — upload a bucket `gmao-images`, conserva blob 30 días
 - `networkStatus.ts` — ping real a Supabase REST cada 30s
 - `deduplication.ts` — reconciliación IDs para areas/asset_categories
-- `dbAccess.ts` — helper `getTable(name)`
+- `dbAccess.ts` — helper `getTable(name)` (incluye task_steps)
 
 ## Archivos críticos (cargar con @ cuando sean relevantes)
 - @REQUIREMENTS.md — especificación completa (versión 2.0)

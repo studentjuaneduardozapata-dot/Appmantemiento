@@ -59,21 +59,26 @@ Flujo de lectura:
 
 | Archivo | Responsabilidad |
 |---------|----------------|
-| `syncManager.ts` | Orquestador: start/stop, sync periódico (3 min), reconexión |
-| `syncQueue.ts` | `enqueue()`, `processPending()`, push a Supabase via upsert, `purgeCompleted/Invalid` |
-| `initialSync.ts` | Pull incremental por `updated_at` (o `created_at`) desde `lastSyncTimestamp`, `pullDeletedRecords` |
-| `realtimeSync.ts` | Suscripción Postgres Realtime a 8 tablas principales (no incluye `task_steps`) |
+| `syncManager.ts` | Orquestador: start/stop, sync periódico (3 min), reconexión, heartbeat cada 30 min, `pushOnly()` para hot path |
+| `syncQueue.ts` | `enqueue()` dispara push inmediato (debounce 300ms), `processPending()` con backoff exponencial (1s→60s), manejo 429, `requeueRecoverableFailed()`, `purgeCompleted/Invalid` |
+| `initialSync.ts` | Pull transaccional (timestamp solo avanza si tablas críticas OK), `performDataHeartbeat()` compara conteos local/remoto, `pullDeletedRecords` |
+| `realtimeSync.ts` | Suscripción Postgres Realtime a 9 tablas (incluye `task_steps`), backoff exponencial de reconexión (10s→5min) |
 | `blobSync.ts` | Sube blobs de `offline_files` a Supabase Storage, reemplaza `local:{uuid}` por URL pública |
 | `networkStatus.ts` | Ping real al endpoint REST de Supabase cada 30s, emite `connectivity-change` |
 | `deduplication.ts` | Reconciliación de IDs duplicados para `areas` (por code) y `asset_categories` (por name) |
-| `dbAccess.ts` | Helper `getTable(name)` para acceso dinámico a tablas Dexie |
+| `dbAccess.ts` | Helper `getTable(name)` para acceso dinámico a tablas Dexie (incluye `task_steps`) |
 | `syncLogger.ts` | Logger con niveles (debug/info/warn/error) para trazabilidad |
 
 Detalles clave:
-- **Push**: `sync_queue` con reintentos (máx 3), idempotente con upsert
-- **Pull**: incremental por `updated_at`/`created_at` desde `lastSyncTimestamp`
-- **Realtime**: suscripción a cambios remotos para 8 tablas (users, areas, asset_categories, assets, incidents, maintenance_plans, maintenance_tasks, maintenance_logs)
-- **SYNC_TABLES (pull)**: las 8 anteriores + `task_steps` (9 tablas total)
+- **Hot-path push**: `enqueue()` dispara `pushOnly()` con debounce de 300ms al escribir en Dexie con red disponible
+- **Push**: `sync_queue` con reintentos (máx 3), backoff exponencial (1s, 2s, 4s…60s), idempotente con upsert
+- **429 handling**: aborta el lote actual al detectar rate limit; items se reintentarán en el próximo ciclo
+- **Auto-requeue**: items `failed` con errores recuperables (no de validación) se re-encolan tras 1 hora
+- **Pull transaccional**: el `last_sync_timestamp` solo avanza si todas las tablas críticas completaron sin error
+- **Heartbeat**: al iniciar y cada 30 min, compara conteos local/remoto; divergencia > 5 registros o > 10% → fuerza resync completo
+- **Realtime**: suscripción a cambios remotos para 9 tablas (users, areas, asset_categories, assets, incidents, maintenance_plans, maintenance_tasks, maintenance_logs, task_steps)
+- **Realtime reconexión**: backoff exponencial 10s, 20s, 40s… máx 5 minutos
+- **SYNC_TABLES (pull)**: 9 tablas total
 - **Blobs**: upload a bucket `gmao-images`, conserva blob local 30 días como fallback offline
 - **Reconexión**: ping real a Supabase REST, no solo evento `online`
 - **AlreadySyncedError**: manejo de unique constraint (23505) con reconciliación de IDs

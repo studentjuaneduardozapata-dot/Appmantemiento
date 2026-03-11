@@ -1,17 +1,20 @@
 import { db } from '@/lib/db'
 import { networkStatus } from './networkStatus'
-import { processPending, purgeInvalidQueueItems, purgeCompletedQueueItems } from './syncQueue'
+import { processPending, purgeInvalidQueueItems, purgeCompletedQueueItems, setPushTrigger } from './syncQueue'
 import { syncBlobs, purgeOldBlobs } from './blobSync'
-import { pullAll, purgeOldDeletedRecords } from './initialSync'
+import { pullAll, performDataHeartbeat, purgeOldDeletedRecords } from './initialSync'
 import { startRealtime, stopRealtime } from './realtimeSync'
 import { syncLogger } from './syncLogger'
 
-const SYNC_INTERVAL_MS = 3 * 60 * 1000 // 3 minutos
+const SYNC_INTERVAL_MS = 3 * 60 * 1000      // 3 minutos
+const HEARTBEAT_INTERVAL_MS = 30 * 60 * 1000 // 30 minutos
 
 class SyncManager {
   private _isRunning = false
   private _syncPromise: Promise<void> | null = null
+  private _pushPromise: Promise<void> | null = null  // lock para hot-path push
   private _interval: ReturnType<typeof setInterval> | null = null
+  private _heartbeatInterval: ReturnType<typeof setInterval> | null = null
   private _onConnectivityChange: (() => void) | null = null
 
   get isSyncing(): boolean {
@@ -29,6 +32,30 @@ class SyncManager {
       await this._syncPromise
     } finally {
       this._syncPromise = null
+    }
+  }
+
+  /**
+   * Hot-path push: solo procesa la cola de sync sin pull completo.
+   * Disparado por enqueue() con debounce de 300ms cuando hay red disponible.
+   */
+  async pushOnly(): Promise<void> {
+    // Si hay un sync completo en curso, ya cubre el queue — no hace falta hot push
+    if (this._syncPromise) {
+      syncLogger.debug('Sync completo en curso, hot-push omitido')
+      return
+    }
+    // Promise-lock para el hot path
+    if (this._pushPromise) {
+      return this._pushPromise
+    }
+    if (!networkStatus.isOnline) return
+
+    this._pushPromise = processPending()
+    try {
+      await this._pushPromise
+    } finally {
+      this._pushPromise = null
     }
   }
 
@@ -71,11 +98,24 @@ class SyncManager {
     networkStatus.start()
     startRealtime()
 
+    // Inyectar trigger de push inmediato en syncQueue (evita import circular)
+    setPushTrigger(() => this.pushOnly())
+
     // Sync inmediato al iniciar
     this.sync()
 
+    // Heartbeat de datos al iniciar (compara conteos local vs remoto)
+    if (networkStatus.isOnline) {
+      performDataHeartbeat()
+    }
+
     // Sync periódico cada 3 minutos
     this._interval = setInterval(() => this.sync(), SYNC_INTERVAL_MS)
+
+    // Heartbeat periódico cada 30 minutos
+    this._heartbeatInterval = setInterval(() => {
+      if (networkStatus.isOnline) performDataHeartbeat()
+    }, HEARTBEAT_INTERVAL_MS)
 
     // Sync al reconectar
     this._onConnectivityChange = () => {
@@ -101,6 +141,11 @@ class SyncManager {
       this._interval = null
     }
 
+    if (this._heartbeatInterval) {
+      clearInterval(this._heartbeatInterval)
+      this._heartbeatInterval = null
+    }
+
     if (this._onConnectivityChange) {
       networkStatus.removeEventListener(
         'connectivity-change',
@@ -108,6 +153,9 @@ class SyncManager {
       )
       this._onConnectivityChange = null
     }
+
+    // Limpiar inyección del trigger de push
+    setPushTrigger(null)
 
     networkStatus.stop()
     stopRealtime()

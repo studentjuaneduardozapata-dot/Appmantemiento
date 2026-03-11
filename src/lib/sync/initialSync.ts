@@ -26,6 +26,23 @@ const TABLES_WITH_CREATED_AT_ONLY = new Set<SyncTable>([
   'maintenance_logs',
 ])
 
+// Tablas críticas: si falla su pull, NO se avanza el timestamp (evita perder registros)
+const CRITICAL_TABLES = new Set<SyncTable>([
+  'assets',
+  'incidents',
+  'maintenance_plans',
+  'maintenance_tasks',
+  'maintenance_logs',
+  'task_steps',
+])
+
+// Tablas cuya divergencia se verifica en el heartbeat
+const HEARTBEAT_TABLES = ['assets', 'incidents', 'maintenance_tasks', 'maintenance_logs'] as const
+type HeartbeatTable = (typeof HEARTBEAT_TABLES)[number]
+
+const HEARTBEAT_DELTA_ABSOLUTE = 5   // diferencia máxima en nº de registros
+const HEARTBEAT_DELTA_PERCENT = 0.10 // 10% de divergencia
+
 async function getLastSyncTimestamp(): Promise<string | null> {
   const meta = await db.sync_meta.get('last_sync_timestamp')
   return meta?.value ?? null
@@ -46,8 +63,8 @@ async function pullTable(table: SyncTable, since: string | null): Promise<number
   const { data, error } = await query
 
   if (error) {
-    syncLogger.warn(`Error pull ${table}`, error.message)
-    return 0
+    // Lanzar error para que pullAll() pueda clasificarlo como crítico o no
+    throw new Error(`pull ${table}: ${error.message}`)
   }
 
   if (!data || data.length === 0) return 0
@@ -104,17 +121,25 @@ export async function purgeOldDeletedRecords(): Promise<void> {
 
 export async function pullAll(): Promise<void> {
   const since = await getLastSyncTimestamp()
+  // Guardar ANTES de comenzar — solo se usa como nuevo watermark si todo sale bien
   const syncStart = new Date().toISOString()
 
   syncLogger.info('Iniciando pull incremental', { since })
 
   let totalPulled = 0
+  let hasCriticalFailure = false
+
   for (const table of SYNC_TABLES) {
     try {
       const count = await pullTable(table, since)
       totalPulled += count
     } catch (err) {
       syncLogger.warn(`Error pulling ${table}`, err)
+      if (CRITICAL_TABLES.has(table)) {
+        hasCriticalFailure = true
+        syncLogger.error(`Fallo crítico en pull de ${table} — timestamp NO se actualizará`)
+      }
+      // Tablas no críticas (users, areas, asset_categories): continuar sin marcar fallo
     }
   }
 
@@ -124,6 +149,75 @@ export async function pullAll(): Promise<void> {
     syncLogger.warn('Error pulling deleted_records', err)
   }
 
-  await setLastSyncTimestamp(syncStart)
-  syncLogger.info(`Pull completado: ${totalPulled} registros actualizados`)
+  // Solo avanzar el watermark si no hubo fallos en tablas críticas
+  if (!hasCriticalFailure) {
+    await setLastSyncTimestamp(syncStart)
+    syncLogger.info(`Pull completado: ${totalPulled} registros. Timestamp actualizado.`)
+  } else {
+    syncLogger.warn(
+      `Pull completado con errores críticos: ${totalPulled} registros. Timestamp NO actualizado — se reintentará en el próximo ciclo.`
+    )
+  }
+}
+
+// ─── Conteo local por tabla (sin registros soft-deleted) ──────────────────────
+
+async function countLocal(table: HeartbeatTable): Promise<number> {
+  switch (table) {
+    case 'assets':
+      return db.assets.filter((r) => !r.deleted_at).count()
+    case 'incidents':
+      return db.incidents.filter((r) => !r.deleted_at).count()
+    case 'maintenance_tasks':
+      return db.maintenance_tasks.filter((r) => !r.deleted_at).count()
+    case 'maintenance_logs':
+      // maintenance_logs no tiene deleted_at en Dexie — contar todos
+      return db.maintenance_logs.count()
+  }
+}
+
+/**
+ * Compara conteos de registros activos entre Dexie y Supabase para tablas críticas.
+ * Si detecta divergencia significativa, resetea last_sync_timestamp para forzar
+ * un pull completo en el próximo ciclo de sync.
+ */
+export async function performDataHeartbeat(): Promise<void> {
+  syncLogger.info('Iniciando data heartbeat')
+
+  try {
+    for (const table of HEARTBEAT_TABLES) {
+      const localCount = await countLocal(table)
+
+      const selectFilter = table !== 'maintenance_logs'
+        ? supabase.from(table).select('*', { count: 'exact', head: true }).is('deleted_at', null)
+        : supabase.from(table).select('*', { count: 'exact', head: true })
+
+      const { count: remoteCount, error } = await selectFilter
+
+      if (error || remoteCount === null) {
+        syncLogger.warn(`Heartbeat: no se pudo obtener conteo remoto de ${table}`)
+        continue
+      }
+
+      const delta = Math.abs(localCount - remoteCount)
+      const percentDelta = remoteCount > 0 ? delta / remoteCount : 0
+
+      syncLogger.debug(
+        `Heartbeat ${table}: local=${localCount} remote=${remoteCount} delta=${delta} (${(percentDelta * 100).toFixed(1)}%)`
+      )
+
+      if (delta > HEARTBEAT_DELTA_ABSOLUTE || percentDelta > HEARTBEAT_DELTA_PERCENT) {
+        syncLogger.warn(
+          `Heartbeat: divergencia detectada en ${table} (delta=${delta}, ${(percentDelta * 100).toFixed(1)}%) — forzando resync completo`
+        )
+        // Resetear timestamp → el próximo pullAll() traerá todos los registros sin filtro
+        await db.sync_meta.delete('last_sync_timestamp')
+        return
+      }
+    }
+
+    syncLogger.info('Heartbeat completado: datos consistentes')
+  } catch (err) {
+    syncLogger.warn('Error en data heartbeat', err)
+  }
 }

@@ -14,6 +14,7 @@ const WRITABLE_TABLES = new Set([
   'maintenance_plans',
   'maintenance_tasks',
   'maintenance_logs',
+  'task_steps',
 ] as const)
 
 type WritableTable = (typeof WRITABLE_TABLES) extends Set<infer T> ? T : never

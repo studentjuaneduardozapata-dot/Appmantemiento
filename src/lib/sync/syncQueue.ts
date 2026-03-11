@@ -1,13 +1,54 @@
 import { db, generateId } from '@/lib/db'
-import type { SyncOperation } from '@/types'
+import type { SyncOperation, SyncQueueItem } from '@/types'
 import { supabase } from '@/integrations/supabase/client'
+import { networkStatus } from './networkStatus'
 import { syncLogger } from './syncLogger'
 import { reconcileAreaId, reconcileCategoryId } from './deduplication'
 import { getTable } from './dbAccess'
 
 const MAX_RETRIES = 3
 
-// Transporta qué campo único causó el conflicto para poder reconciliar IDs
+// ─── Hot path injection (evita import circular con syncManager) ────────────────
+
+let _pushTrigger: (() => void) | null = null
+let _debounceTimer: ReturnType<typeof setTimeout> | null = null
+const DEBOUNCE_MS = 300
+
+/** Inyectado por syncManager.start() para disparar push inmediato sin import circular. */
+export function setPushTrigger(fn: (() => void) | null): void {
+  _pushTrigger = fn
+}
+
+// ─── Backoff exponencial en memoria (sin cambio de schema) ────────────────────
+
+const _lastAttempt = new Map<number, number>() // autoId → timestamp del último intento
+
+function getBackoffMs(retryCount: number): number {
+  // 1s, 2s, 4s, 8s, 16s, 32s, máx 60s
+  return Math.min(1000 * Math.pow(2, retryCount - 1), 60_000)
+}
+
+function shouldSkipDueToBackoff(item: SyncQueueItem): boolean {
+  if (item.retry_count === 0) return false
+  const last = _lastAttempt.get(item.autoId!)
+  if (!last) return false
+  return Date.now() - last < getBackoffMs(item.retry_count)
+}
+
+// ─── Patrones de error de validación (no recuperables — quedan failed) ────────
+
+const VALIDATION_ERROR_PATTERNS = [
+  'Payload inválido',
+  'id no es un UUID',
+  'campo code requerido',
+]
+
+function isValidationError(msg: string | undefined): boolean {
+  if (!msg) return false
+  return VALIDATION_ERROR_PATTERNS.some((p) => msg.includes(p))
+}
+
+// ─── Transporta qué campo único causó el conflicto para reconciliar IDs ───────
 class AlreadySyncedError extends Error {
   constructor(
     public readonly conflictField?: string,
@@ -16,6 +57,8 @@ class AlreadySyncedError extends Error {
     super('already_synced')
   }
 }
+
+// ─── enqueue ──────────────────────────────────────────────────────────────────
 
 export async function enqueue(
   table: string,
@@ -30,7 +73,18 @@ export async function enqueue(
     retry_count: 0,
     created_at: new Date().toISOString(),
   })
+
+  // Hot path: si hay red, disparar push inmediato (debounced 300ms para agrupar escrituras)
+  if (_pushTrigger && networkStatus.isOnline) {
+    if (_debounceTimer) clearTimeout(_debounceTimer)
+    _debounceTimer = setTimeout(() => {
+      _debounceTimer = null
+      _pushTrigger?.()
+    }, DEBOUNCE_MS)
+  }
 }
+
+// ─── purge ────────────────────────────────────────────────────────────────────
 
 export async function purgeCompletedQueueItems(): Promise<void> {
   const oneDayAgo = new Date(Date.now() - 86_400_000).toISOString()
@@ -54,7 +108,7 @@ function isValidUUID(value: unknown): boolean {
 }
 
 export async function purgeInvalidQueueItems(): Promise<void> {
-  // areas: 'code' is NOT NULL in Supabase — mark items without it as failed
+  // areas: 'code' is NOT NULL en Supabase — marcar items sin él como failed
   await db.sync_queue
     .where('table').equals('areas')
     .and((item) =>
@@ -64,7 +118,7 @@ export async function purgeInvalidQueueItems(): Promise<void> {
     )
     .modify({ status: 'failed', last_error: 'Payload inválido: campo code requerido' })
 
-  // Requeue items that previously failed with areas_code_key — now se reconcilian correctamente
+  // Requeue items que fallaron con areas_code_key — ahora se reconcilian correctamente
   await db.sync_queue
     .where('table').equals('areas')
     .and((item) =>
@@ -75,9 +129,7 @@ export async function purgeInvalidQueueItems(): Promise<void> {
     )
     .modify({ status: 'pending', retry_count: 0 })
 
-  // Cualquier tabla: 'id' debe ser UUID válido — Supabase rechaza con 400 si no lo es.
-  // Esto captura cualquier registro seed o creado con IDs de formato incorrecto
-  // antes de que la migración Dexie v6 pueda corregirlos.
+  // Cualquier tabla: 'id' debe ser UUID válido — Supabase rechaza con 400 si no lo es
   await db.sync_queue
     .filter((item) =>
       (item.status === 'pending' || item.status === 'processing') &&
@@ -87,7 +139,31 @@ export async function purgeInvalidQueueItems(): Promise<void> {
     .modify({ status: 'failed', last_error: 'Payload inválido: id no es un UUID válido' })
 }
 
+/**
+ * Re-encola items con status='failed' que sean recuperables:
+ * - retry_count < MAX_RETRIES
+ * - error NO es de validación (esos quedan failed permanentemente)
+ * - creado hace más de 1 hora (para no re-intentar los recién fallados)
+ */
+export async function requeueRecoverableFailed(): Promise<void> {
+  const oneHourAgo = new Date(Date.now() - 3_600_000).toISOString()
+
+  await db.sync_queue
+    .where('status').equals('failed')
+    .and((item) =>
+      item.retry_count < MAX_RETRIES &&
+      !isValidationError(item.last_error) &&
+      (item.created_at ?? '') < oneHourAgo
+    )
+    .modify({ status: 'pending', last_error: undefined })
+}
+
+// ─── processPending ───────────────────────────────────────────────────────────
+
 export async function processPending(): Promise<void> {
+  // Primero re-encolar items recuperables que llevan > 1h en failed
+  await requeueRecoverableFailed()
+
   const pending = await db.sync_queue
     .where('status')
     .anyOf(['pending', 'processing'])
@@ -100,6 +176,12 @@ export async function processPending(): Promise<void> {
   for (const item of pending) {
     if (item.retry_count >= MAX_RETRIES) {
       await db.sync_queue.update(item.autoId!, { status: 'failed' })
+      continue
+    }
+
+    // Backoff exponencial: saltar items retentados demasiado recientemente
+    if (shouldSkipDueToBackoff(item)) {
+      syncLogger.debug(`Backoff: skip ${item.table}#${item.autoId} (retry ${item.retry_count})`)
       continue
     }
 
@@ -143,14 +225,26 @@ export async function processPending(): Promise<void> {
       const errorMsg = err instanceof Error ? err.message : String(err)
       syncLogger.warn(`Error push ${item.table}#${item.autoId}`, errorMsg)
 
+      // Registrar timestamp del intento fallido para backoff
+      _lastAttempt.set(item.autoId!, Date.now())
+
       await db.sync_queue.update(item.autoId!, {
         status: item.retry_count + 1 >= MAX_RETRIES ? 'failed' : 'pending',
         retry_count: item.retry_count + 1,
         last_error: errorMsg,
       })
+
+      // Rate limit: abortar el lote actual para no seguir acumulando errores 429
+      const is429 = errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')
+      if (is429) {
+        syncLogger.warn('Rate limit (429) detectado — abortando lote actual')
+        break
+      }
     }
   }
 }
+
+// ─── pushToSupabase ───────────────────────────────────────────────────────────
 
 async function pushToSupabase(
   table: string,

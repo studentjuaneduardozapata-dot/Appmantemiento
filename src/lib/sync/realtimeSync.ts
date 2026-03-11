@@ -12,6 +12,7 @@ const REALTIME_TABLES = [
   'maintenance_plans',
   'maintenance_tasks',
   'maintenance_logs',
+  'task_steps',
 ] as const
 
 type RealtimeTable = (typeof REALTIME_TABLES)[number]
@@ -24,9 +25,19 @@ const TABLES_WITH_SYNCED = new Set<RealtimeTable>([
   'maintenance_plans',
   'maintenance_tasks',
   'maintenance_logs',
+  'task_steps',
 ])
 
-const RECONNECT_DELAY_MS = 10_000
+// Backoff exponencial para reconexión: 10s, 20s, 40s... máx 5 minutos
+const RECONNECT_BASE_MS = 10_000
+const RECONNECT_MAX_MS = 5 * 60_000
+
+const _reconnectAttempts = new Map<RealtimeTable, number>()
+
+function getReconnectDelay(table: RealtimeTable): number {
+  const attempt = _reconnectAttempts.get(table) ?? 0
+  return Math.min(RECONNECT_BASE_MS * Math.pow(2, attempt), RECONNECT_MAX_MS)
+}
 
 let channels: Map<RealtimeTable, RealtimeChannel> = new Map()
 
@@ -50,13 +61,21 @@ function subscribeToTable(table: RealtimeTable): void {
     )
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
+        _reconnectAttempts.delete(table) // Reset en conexión exitosa
         syncLogger.debug(`Realtime suscrito: ${table}`)
       } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
         // Solo reconectar si este canal es todavía el activo (no fue reemplazado)
         if (channels.get(table) !== channel) return
-        syncLogger.warn(`Realtime ${status}: ${table} — reconectando en ${RECONNECT_DELAY_MS / 1000}s`)
+
+        const attempt = _reconnectAttempts.get(table) ?? 0
+        _reconnectAttempts.set(table, attempt + 1)
+        const delay = getReconnectDelay(table)
+
+        syncLogger.warn(
+          `Realtime ${status}: ${table} — reconectando en ${delay / 1000}s (intento ${attempt + 1})`
+        )
         channels.delete(table)
-        setTimeout(() => subscribeToTable(table), RECONNECT_DELAY_MS)
+        setTimeout(() => subscribeToTable(table), delay)
       }
     })
 
@@ -72,6 +91,7 @@ export function startRealtime(): void {
 export function stopRealtime(): void {
   const toRemove = [...channels.values()]
   channels = new Map() // Limpiar primero para que CLOSED no programe reconnects
+  _reconnectAttempts.clear()
   for (const channel of toRemove) {
     supabase.removeChannel(channel)
   }
