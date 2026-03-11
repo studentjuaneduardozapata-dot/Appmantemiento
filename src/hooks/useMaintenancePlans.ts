@@ -119,12 +119,10 @@ export async function createMaintenancePlan(
         await db.maintenance_plans.add(plan)
         await enqueue('maintenance_plans', 'insert', plan as unknown as Record<string, unknown>)
 
+        const firstDue = planData.start_date ?? format(new Date(), 'yyyy-MM-dd')
         for (const taskData of tasks) {
           const taskId = generateId()
-          const nextDue = format(
-            addDays(new Date(), Math.max(taskData.frequency_days, 1)),
-            'yyyy-MM-dd'
-          )
+          const nextDue = firstDue
           const task: MaintenanceTask = {
             id: taskId,
             plan_id: planId,

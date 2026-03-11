@@ -208,6 +208,11 @@ Calculado automáticamente:
 - 🟡 Amarillo: mantenimiento próximo (vence en los próximos 7 días)
 - 🟢 Verde: todo al día
 
+### 8.2b Imagen del activo
+Muestra en ratio 16:9 (`aspect-video`) con `max-h-48` y `object-cover`.
+El marco es compacto para priorizar especificaciones y planes en pantalla.
+Click abre lightbox (pantalla completa).
+
 ### 8.3 QR por activo
 - QR único por activo (codifica el UUID)
 - Botón "Ver QR" en detalle para mostrar e imprimir
@@ -279,6 +284,11 @@ Al completar una tarea:
 ### 10.6 Lógica de frecuencias
 Al completar una tarea preventiva, recalcula `next_due_date`
 basada en `frequency_days`.
+
+Al **crear** un plan, el usuario selecciona la "Fecha del primer mantenimiento" (`start_date`).
+Todas las tareas del nuevo plan reciben esa fecha como su `next_due_date` inicial.
+Si no se especifica, se usa la fecha actual como fallback.
+(Al **editar** un plan, las tareas nuevas usan `hoy + frequency_days`, como antes.)
 
 ### 10.7 Vista del cronograma
 Dos vistas navegables:

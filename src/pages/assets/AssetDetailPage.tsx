@@ -144,12 +144,12 @@ export default function AssetDetailPage() {
           <button
             type="button"
             onClick={() => setImgOpen(true)}
-            className="bg-card mb-3 w-full block"
+            className="bg-card mb-3 w-full block overflow-hidden"
           >
             <img
               src={imageSrc}
               alt={asset.name}
-              className="w-full aspect-square object-cover"
+              className="w-full max-h-48 object-cover aspect-video"
             />
           </button>
 

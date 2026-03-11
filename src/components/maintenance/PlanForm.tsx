@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { format } from 'date-fns'
 import { Plus, Trash2, ChevronDown, ChevronUp, ListChecks } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
@@ -27,6 +28,7 @@ const schema = z.object({
   description: z.string().optional(),
   type: z.enum(['unico', 'preventivo']),
   asset_ids: z.array(z.string()).min(1, 'Selecciona al menos un activo'),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   tasks: z.array(taskSchema).min(1, 'Agrega al menos una tarea'),
 })
 
@@ -145,6 +147,8 @@ export function PlanForm({ onSubmit, isSubmitting, initialValues, submitLabel, p
     })
   }, [filterAreaId, filterCategoryId, assets])
 
+  const todayIso = format(new Date(), 'yyyy-MM-dd')
+
   const defaultValues: PlanFormValues = initialValues
     ? {
         ...initialValues.plan,
@@ -158,6 +162,7 @@ export function PlanForm({ onSubmit, isSubmitting, initialValues, submitLabel, p
         description: '',
         type: 'preventivo',
         asset_ids: [],
+        start_date: todayIso,
         tasks: [{ description: '', frequency_days: 7, steps: [] }],
       }
 
@@ -244,6 +249,23 @@ export function PlanForm({ onSubmit, isSubmitting, initialValues, submitLabel, p
           )}
         </div>
       </div>
+
+      {/* Fecha de inicio — solo al crear */}
+      {!initialValues && (
+        <div>
+          <label className="gmao-label">
+            Fecha del primer mantenimiento <span className="text-destructive">*</span>
+          </label>
+          <input
+            {...register('start_date')}
+            type="date"
+            className="gmao-input"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Las tareas tendrán esta fecha como primera fecha de vencimiento
+          </p>
+        </div>
+      )}
 
       {/* Activos asociados con cascada */}
       <div>

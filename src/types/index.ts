@@ -65,6 +65,7 @@ export interface MaintenancePlanFormData {
   description?: string
   asset_ids: string[]
   type: 'unico' | 'preventivo'
+  start_date?: string   // 'yyyy-MM-dd' — fecha del primer mantenimiento (solo creación)
 }
 
 export interface MaintenanceTaskStepFormData {

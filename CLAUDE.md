@@ -88,6 +88,13 @@ npm run lint         # linting
 - Soft-delete con `deleted_at` — nunca DELETE físico en tablas principales
 - `push` usa `upsert` — idempotente, last-write-wins
 
+## Lógica de creación de planes
+- Campo `start_date` (date input) en `PlanForm` — solo visible al crear (cuando `!initialValues`)
+- `createMaintenancePlan` usa `planData.start_date` como `next_due_date` de todas las tareas nuevas
+- Si `start_date` no viene, fallback a fecha actual
+- Al editar, las tareas NUEVAS siguen usando `hoy + frequency_days`
+- Imagen de activo: `aspect-video max-h-48 object-cover` (compacto, antes era `aspect-square`)
+
 ## Comportamiento TodayPage (cronograma embebido)
 - Botones header: "Preventivos" (outline → /schedule/preventive) + "+ Plan" (→ /schedule/new-plan)
 - `DayDetailModal` recibe `incidents` filtrados por día con `getIncidentDayKey` (misma lógica que MonthView: cerrados=closed_at, abiertos=reported_at)
