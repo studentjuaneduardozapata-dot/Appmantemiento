@@ -14,6 +14,7 @@ const SYNC_TABLES = [
   'maintenance_plans',
   'maintenance_tasks',
   'maintenance_logs',
+  'task_steps',
 ] as const
 
 type SyncTable = (typeof SYNC_TABLES)[number]

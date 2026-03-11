@@ -32,6 +32,20 @@ function getDotColor(dateStr: string, status: string): string {
   return 'bg-green-500'
 }
 
+/**
+ * Convierte un ISO timestamp (con o sin zona horaria) a una clave de fecha
+ * local en formato 'yyyy-MM-dd', respetando el timezone del dispositivo.
+ */
+function toLocalDateKey(isoString: string | undefined): string | null {
+  if (!isoString) return null
+  try {
+    return format(parseISO(isoString), 'yyyy-MM-dd')
+  } catch {
+    // Fallback seguro si el string no es un ISO válido
+    return isoString.slice(0, 10)
+  }
+}
+
 export function MonthView({ month, onMonthChange, onDayClick, incidents = [] }: MonthViewProps) {
   const monthStart = startOfMonth(month)
   const monthEnd = endOfMonth(month)
@@ -52,12 +66,20 @@ export function MonthView({ month, onMonthChange, onDayClick, incidents = [] }: 
     return map
   }, [tasks])
 
+  // Agrupar incidentes por día usando la fecha local correcta:
+  // - Open/in_progress: día en que se reportó (reported_at)
+  // - Closed: día en que se cerró (closed_at); si no tiene, usar reported_at
   const incidentsByDay = useMemo(() => {
     const map = new Map<string, Incident[]>()
     for (const inc of incidents) {
-      const key = inc.reported_at.slice(0, 10)
-      if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(inc)
+      const dateKey =
+        inc.status === 'cerrada'
+          ? toLocalDateKey(inc.closed_at) ?? toLocalDateKey(inc.reported_at)
+          : toLocalDateKey(inc.reported_at)
+
+      if (!dateKey) continue
+      if (!map.has(dateKey)) map.set(dateKey, [])
+      map.get(dateKey)!.push(inc)
     }
     return map
   }, [incidents])

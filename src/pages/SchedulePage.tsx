@@ -1,11 +1,31 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { startOfMonth, addMonths, endOfMonth, format } from 'date-fns'
+import { startOfMonth, addMonths, endOfMonth, format, parseISO } from 'date-fns'
 import { Plus } from 'lucide-react'
 import { MonthView } from '@/components/maintenance/MonthView'
 import { DayDetailModal } from '@/components/maintenance/DayDetailModal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useIncidentsInRange } from '@/hooks/useIncidents'
+import type { Incident } from '@/lib/db'
+
+/**
+ * Retorna la clave de fecha local (yyyy-MM-dd) que corresponde a un incidente
+ * para efectos del modal de detalle del día:
+ * - Cerrado: se usa closed_at (fecha de cierre)
+ * - Abierto/En progreso: se usa reported_at (fecha de reporte)
+ * Usa format(parseISO()) para respetar el timezone local del dispositivo.
+ */
+function getIncidentDayKey(inc: Incident): string | null {
+  const raw = inc.status === 'cerrada'
+    ? (inc.closed_at ?? inc.reported_at)
+    : inc.reported_at
+  if (!raw) return null
+  try {
+    return format(parseISO(raw), 'yyyy-MM-dd')
+  } catch {
+    return raw.slice(0, 10)
+  }
+}
 
 export default function SchedulePage() {
   const navigate = useNavigate()
@@ -19,6 +39,12 @@ export default function SchedulePage() {
   function handleMonthChange(dir: -1 | 1) {
     setMonthAnchor((prev) => addMonths(prev, dir))
   }
+
+  // Filtrar los incidentes del día seleccionado para el modal
+  const selectedDayIncidents = useMemo(() => {
+    if (!selectedDay || !incidents) return []
+    return incidents.filter((inc) => getIncidentDayKey(inc) === selectedDay)
+  }, [selectedDay, incidents])
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,6 +73,7 @@ export default function SchedulePage() {
       <DayDetailModal
         date={selectedDay}
         onClose={() => setSelectedDay(null)}
+        incidents={selectedDayIncidents}
       />
     </div>
   )
