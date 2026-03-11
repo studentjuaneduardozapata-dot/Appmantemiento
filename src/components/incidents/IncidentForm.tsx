@@ -39,6 +39,7 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
 
   const [filterAreaId, setFilterAreaId] = useState('')
   const [filterCategoryId, setFilterCategoryId] = useState('')
+  const [isImageLoading, setIsImageLoading] = useState(false)
 
   const availableCategories = useMemo(() => {
     if (!allAssets || !allCategories) return []
@@ -219,6 +220,7 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
           value={watch('photo_url')}
           onChange={(v) => setValue('photo_url', v)}
           onClear={() => setValue('photo_url', '')}
+          onLoadingChange={setIsImageLoading}
         />
       </div>
 
@@ -234,10 +236,10 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isImageLoading}
         className="gmao-btn-destructive"
       >
-        {isSubmitting ? 'Guardando...' : 'Reportar falla'}
+        {isImageLoading ? 'Procesando imagen...' : isSubmitting ? 'Guardando...' : 'Reportar falla'}
       </button>
     </form>
   )

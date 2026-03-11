@@ -96,7 +96,7 @@ export default function IncidentDetailPage() {
             description: incident.description,
             photo_url: incident.photo_url,
             reported_at: incident.reported_at
-              ? format(new Date(incident.reported_at + 'T00:00:00'), 'yyyy-MM-dd')
+              ? format(new Date(incident.reported_at), 'yyyy-MM-dd')
               : format(new Date(), 'yyyy-MM-dd'),
           }}
           onSubmit={handleEdit}

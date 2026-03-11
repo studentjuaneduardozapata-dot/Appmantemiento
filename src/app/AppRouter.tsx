@@ -6,8 +6,10 @@ import AssetNewPage from '@/pages/assets/AssetNewPage'
 import AreaDetailPage from '@/pages/assets/AreaDetailPage'
 import AssetDetailPage from '@/pages/assets/AssetDetailPage'
 import AssetEditPage from '@/pages/assets/AssetEditPage'
+import SchedulePage from '@/pages/SchedulePage'
 import NewPlanPage from '@/pages/schedule/NewPlanPage'
 import PlanDetailPage from '@/pages/schedule/PlanDetailPage'
+import EditPlanPage from '@/pages/schedule/EditPlanPage'
 import IncidentsPage from '@/pages/IncidentsPage'
 import IncidentNewPage from '@/pages/incidents/IncidentNewPage'
 import IncidentDetailPage from '@/pages/incidents/IncidentDetailPage'
@@ -29,8 +31,10 @@ export function AppRouter() {
         <Route path="assets/:id/edit" element={<AssetEditPage />} />
 
         {/* Schedule */}
+        <Route path="schedule" element={<SchedulePage />} />
         <Route path="schedule/new-plan" element={<NewPlanPage />} />
         <Route path="schedule/plan/:id" element={<PlanDetailPage />} />
+        <Route path="schedule/plan/:id/edit" element={<EditPlanPage />} />
 
         {/* Incidents — literal 'new' antes que :id */}
         <Route path="incidents" element={<IncidentsPage />} />

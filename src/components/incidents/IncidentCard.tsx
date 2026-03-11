@@ -70,7 +70,7 @@ export function IncidentCard({ incident, assetName, onClick }: IncidentCardProps
       </div>
 
       <p className="gmao-mono text-muted-foreground mt-1.5 text-[11px]">
-        {format(new Date(incident.reported_at + 'T00:00:00'), 'dd MMM yyyy', { locale: es })}
+        {format(new Date(incident.reported_at), 'dd MMM yyyy', { locale: es })}
         <span className="mx-1.5 opacity-40">·</span>
         {incident.reported_by}
       </p>

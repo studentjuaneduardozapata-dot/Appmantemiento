@@ -121,6 +121,18 @@ export interface MaintenanceLog {
   photo_url?: string
   completed_at: string
   created_at: string
+  completed_step_ids?: string[]
+  _synced: boolean
+}
+
+export interface MaintenanceTaskStep {
+  id: string
+  task_id: string
+  description: string
+  sort_order: number
+  created_at: string
+  updated_at: string
+  deleted_at?: string
   _synced: boolean
 }
 
@@ -181,6 +193,7 @@ class GMAODatabase extends Dexie {
   maintenance_plans!: EntityTable<MaintenancePlan, 'id'>
   maintenance_tasks!: EntityTable<MaintenanceTask, 'id'>
   maintenance_logs!: EntityTable<MaintenanceLog, 'id'>
+  task_steps!: EntityTable<MaintenanceTaskStep, 'id'>
   notifications!: EntityTable<AppNotification, 'id'>
   offline_files!: EntityTable<OfflineFile, 'id'>
   sync_queue!: EntityTable<SyncQueueItem, 'autoId'>
@@ -253,6 +266,115 @@ class GMAODatabase extends Dexie {
           await tx.table('asset_categories').delete(dup.id)
         }
       }
+    })
+
+    // Migración v6: corregir IDs de categorías con formato no-UUID (cat-XXXX-...) a UUIDs válidos.
+    // Supabase rechaza cualquier valor que no sea UUID estricto en columnas de tipo uuid.
+    // También actualiza referencias en assets y payloads pendientes en sync_queue.
+    this.version(6).stores({}).upgrade(async (tx) => {
+      const UUID_VALID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+      // Mapa de IDs antiguos → nuevos UUIDs válidos, indexados por nombre de categoría
+      const NAME_TO_NEW_ID: Record<string, string> = {
+        'Silos':                          '00000000-0000-4000-8000-000000000001',
+        'Secadoras':                      '00000000-0000-4000-8000-000000000002',
+        'Limpiadoras':                    '00000000-0000-4000-8000-000000000003',
+        'Pre-limpiadoras':                '00000000-0000-4000-8000-000000000004',
+        'Elevadores':                     '00000000-0000-4000-8000-000000000005',
+        'Básculas':                       '00000000-0000-4000-8000-000000000006',
+        'Báscula camionera':              '00000000-0000-4000-8000-000000000007',
+        'Báscula portátil':               '00000000-0000-4000-8000-000000000008',
+        'Clasificadoras':                 '00000000-0000-4000-8000-000000000009',
+        'Desgeminadoras':                 '00000000-0000-4000-8000-000000000010',
+        'Hidropolichadores':              '00000000-0000-4000-8000-000000000011',
+        'Ensacadoras':                    '00000000-0000-4000-8000-000000000012',
+        'Máquinas de coser':              '00000000-0000-4000-8000-000000000013',
+        'Tableros de control':            '00000000-0000-4000-8000-000000000014',
+        'Tolvas de recibo':               '00000000-0000-4000-8000-000000000015',
+        'Despredadora':                   '00000000-0000-4000-8000-000000000016',
+        'Transportadores de banda':       '00000000-0000-4000-8000-000000000017',
+        'Montacargas':                    '00000000-0000-4000-8000-000000000018',
+        'Elevadores de bulto (malacate)': '00000000-0000-4000-8000-000000000019',
+        'Elevadores de bultos (grillo)':  '00000000-0000-4000-8000-000000000020',
+        'Parrillas':                      '00000000-0000-4000-8000-000000000021',
+        'Infraestructura':                '00000000-0000-4000-8000-000000000022',
+        'Motores':                        '00000000-0000-4000-8000-000000000023',
+        'Componentes':                    '00000000-0000-4000-8000-000000000024',
+        'Otros':                          '00000000-0000-4000-8000-000000000025',
+      }
+
+      // Recolectar solo las categorías con ID inválido
+      const allCats = await tx.table('asset_categories').toArray()
+      const idMap = new Map<string, string>() // oldId → newId
+
+      for (const cat of allCats) {
+        const oldId = cat.id as string
+        if (UUID_VALID.test(oldId)) continue // ya es UUID válido
+
+        const newId = NAME_TO_NEW_ID[cat.name as string]
+        if (!newId) continue // nombre desconocido — no se migra
+
+        // Si ya existe un registro con el newId, solo redirigir y borrar el viejo
+        const existing = await tx.table('asset_categories').get(newId)
+        if (!existing) {
+          await tx.table('asset_categories').put({ ...cat, id: newId })
+        }
+        await tx.table('asset_categories').delete(oldId)
+        idMap.set(oldId, newId)
+      }
+
+      if (idMap.size === 0) return
+
+      // Actualizar referencias en assets
+      const allAssets = await tx.table('assets').toArray()
+      for (const asset of allAssets) {
+        const newCatId = idMap.get(asset.category_id as string)
+        if (newCatId) {
+          await tx.table('assets').update(asset.id, { category_id: newCatId, _synced: false })
+        }
+      }
+
+      // Actualizar / invalidar sync_queue
+      const queueItems = await tx.table('sync_queue').toArray()
+      for (const item of queueItems) {
+        if (item.status === 'completed') continue
+
+        const payload = item.payload as Record<string, unknown>
+        let changed = false
+        const updatedPayload = { ...payload }
+
+        // Items de asset_categories con ID viejo → actualizar a nuevo UUID
+        if (item.table === 'asset_categories') {
+          const newId = idMap.get(payload.id as string)
+          if (newId) {
+            updatedPayload.id = newId
+            changed = true
+          }
+        }
+
+        // Items de assets con category_id viejo → actualizar referencia
+        if (item.table === 'assets') {
+          const newCatId = idMap.get(payload.category_id as string)
+          if (newCatId) {
+            updatedPayload.category_id = newCatId
+            changed = true
+          }
+        }
+
+        if (changed) {
+          await tx.table('sync_queue').update(item.autoId, {
+            payload: updatedPayload,
+            status: 'pending',
+            retry_count: 0,
+            last_error: undefined,
+          })
+        }
+      }
+    })
+
+    // v7: tabla de sub-pasos por tarea de mantenimiento
+    this.version(7).stores({
+      task_steps: '&id, task_id, sort_order, _synced, deleted_at',
     })
   }
 }

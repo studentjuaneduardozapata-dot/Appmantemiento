@@ -79,7 +79,7 @@ export function IncidentDetail({
         <DetailRow
           label="Fecha"
           value={format(
-            new Date(incident.reported_at + 'T00:00:00'),
+            new Date(incident.reported_at),
             'dd MMM yyyy',
             { locale: es }
           )}
@@ -93,7 +93,7 @@ export function IncidentDetail({
         {incident.resolution_time && (
           <DetailRow label="Tiempo de resolución" value={incident.resolution_time} />
         )}
-        {incident.closed_at && (
+        {incident.closed_at && !isNaN(new Date(incident.closed_at).getTime()) && (
           <DetailRow
             label="Cerrada el"
             value={format(new Date(incident.closed_at), 'dd MMM yyyy HH:mm', {

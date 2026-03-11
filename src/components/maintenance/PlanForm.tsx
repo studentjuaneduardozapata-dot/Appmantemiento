@@ -2,14 +2,24 @@ import { useState, useMemo } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, ListChecks } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
-import type { MaintenancePlanFormData, MaintenanceTaskFormData } from '@/types'
+import type { MaintenancePlanFormData, MaintenanceTaskFormData, MaintenanceTaskStepFormData } from '@/types'
+
+// ─── Schema ────────────────────────────────────────────────────────────────────
+
+const stepSchema = z.object({
+  id: z.string().optional(),
+  description: z.string().min(1, 'Requerido'),
+  sort_order: z.number().int().min(0).default(0),
+})
 
 const taskSchema = z.object({
+  id: z.string().optional(),
   description: z.string().min(1, 'Requerido'),
   frequency_days: z.coerce.number().int().min(1, 'Mínimo 1 día'),
+  steps: z.array(stepSchema).optional().default([]),
 })
 
 const schema = z.object({
@@ -20,17 +30,88 @@ const schema = z.object({
   tasks: z.array(taskSchema).min(1, 'Agrega al menos una tarea'),
 })
 
-type PlanFormValues = MaintenancePlanFormData & { tasks: MaintenanceTaskFormData[] }
-
-interface PlanFormProps {
-  onSubmit: (
-    plan: MaintenancePlanFormData,
-    tasks: MaintenanceTaskFormData[]
-  ) => Promise<void>
-  isSubmitting: boolean
+type PlanFormValues = MaintenancePlanFormData & {
+  tasks: (MaintenanceTaskFormData & { steps: MaintenanceTaskStepFormData[] })[]
 }
 
-export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
+// ─── Props ─────────────────────────────────────────────────────────────────────
+
+export interface PlanFormInitialValues {
+  plan: MaintenancePlanFormData
+  tasks: (MaintenanceTaskFormData & { steps?: MaintenanceTaskStepFormData[] })[]
+}
+
+interface PlanFormProps {
+  onSubmit: (plan: MaintenancePlanFormData, tasks: MaintenanceTaskFormData[]) => Promise<void>
+  isSubmitting: boolean
+  initialValues?: PlanFormInitialValues
+  submitLabel?: string
+}
+
+// ─── TaskStepsSection (sub-component) ─────────────────────────────────────────
+
+interface TaskStepsSectionProps {
+  taskIndex: number
+  control: ReturnType<typeof useForm<PlanFormValues>>['control']
+  register: ReturnType<typeof useForm<PlanFormValues>>['register']
+}
+
+function TaskStepsSection({ taskIndex, control, register }: TaskStepsSectionProps) {
+  const [expanded, setExpanded] = useState(false)
+
+  const { fields: stepFields, append: appendStep, remove: removeStep } = useFieldArray<PlanFormValues>({
+    control,
+    name: `tasks.${taskIndex}.steps` as 'tasks.0.steps',
+  })
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+      >
+        <ListChecks className="w-3.5 h-3.5" />
+        Sub-pasos ({stepFields.length})
+        {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+      </button>
+
+      {expanded && (
+        <div className="mt-1.5 pl-2 border-l-2 border-border space-y-1.5">
+          {stepFields.map((stepField, si) => (
+            <div key={stepField.id} className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground w-4 text-right flex-shrink-0">{si + 1}.</span>
+              <input
+                {...register(`tasks.${taskIndex}.steps.${si}.description`)}
+                placeholder="Descripción del sub-paso"
+                className="gmao-input-sm flex-1 text-xs"
+              />
+              <button
+                type="button"
+                onClick={() => removeStep(si)}
+                className="p-1 text-muted-foreground hover:text-destructive flex-shrink-0"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => appendStep({ description: '', sort_order: stepFields.length })}
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
+          >
+            <Plus className="w-3 h-3" />
+            Añadir sub-paso
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
+
+export function PlanForm({ onSubmit, isSubmitting, initialValues, submitLabel }: PlanFormProps) {
   const assets = useLiveQuery(() => db.assets.filter((a) => !a.deleted_at).toArray())
   const areas = useLiveQuery(() => db.areas.orderBy('sort_order').filter((a) => !a.deleted_at).toArray())
   const allCategories = useLiveQuery(() => db.asset_categories.filter((c) => !c.deleted_at).toArray())
@@ -54,6 +135,22 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
     })
   }, [filterAreaId, filterCategoryId, assets])
 
+  const defaultValues: PlanFormValues = initialValues
+    ? {
+        ...initialValues.plan,
+        tasks: initialValues.tasks.map((t) => ({
+          ...t,
+          steps: t.steps ?? [],
+        })),
+      }
+    : {
+        title: '',
+        description: '',
+        type: 'preventivo',
+        asset_ids: [],
+        tasks: [{ description: '', frequency_days: 7, steps: [] }],
+      }
+
   const {
     register,
     handleSubmit,
@@ -62,13 +159,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
     formState: { errors },
   } = useForm<PlanFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      title: '',
-      description: '',
-      type: 'preventivo',
-      asset_ids: [],
-      tasks: [{ description: '', frequency_days: 7 }],
-    },
+    defaultValues,
   })
 
   const { fields, append, remove } = useFieldArray<PlanFormValues, 'tasks'>({
@@ -95,6 +186,8 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
     const { tasks, ...planData } = data
     await onSubmit(planData, tasks)
   }
+
+  const label = submitLabel ?? (initialValues ? 'Guardar cambios' : 'Crear plan')
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5 px-4 py-4">
@@ -148,7 +241,6 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
           Activos asociados <span className="text-destructive">*</span>
         </label>
 
-        {/* Filtros Área / Categoría */}
         <div className="flex gap-2 mb-2">
           <select
             value={filterAreaId}
@@ -218,10 +310,10 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
         <label className="gmao-label mb-2">
           Tareas <span className="text-destructive">*</span>
         </label>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {fields.map((field, index) => (
             <div key={field.id} className="flex gap-2 items-start">
-              <div className="flex-1 space-y-1.5">
+              <div className="flex-1 space-y-1.5 border border-border/60 rounded-lg p-2.5">
                 <input
                   {...register(`tasks.${index}.description`)}
                   placeholder="Descripción de la tarea"
@@ -244,6 +336,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
                     {errors.tasks[index]?.description?.message}
                   </p>
                 )}
+                <TaskStepsSection taskIndex={index} control={control} register={register} />
               </div>
               {fields.length > 1 && (
                 <button
@@ -262,7 +355,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
         )}
         <button
           type="button"
-          onClick={() => append({ description: '', frequency_days: 7 })}
+          onClick={() => append({ description: '', frequency_days: 7, steps: [] })}
           className="mt-2 flex items-center gap-1 text-sm text-primary hover:text-primary/80"
         >
           <Plus className="w-4 h-4" />
@@ -275,7 +368,7 @@ export function PlanForm({ onSubmit, isSubmitting }: PlanFormProps) {
         disabled={isSubmitting}
         className="gmao-btn-primary"
       >
-        {isSubmitting ? 'Guardando...' : 'Crear plan'}
+        {isSubmitting ? 'Guardando...' : label}
       </button>
     </form>
   )

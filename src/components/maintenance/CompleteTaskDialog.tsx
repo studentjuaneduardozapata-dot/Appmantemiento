@@ -6,6 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import type { MaintenanceTask, MaintenancePlan } from '@/lib/db'
 import { completeTask } from '@/hooks/useMaintenanceTasks'
+import { useStepsByTask } from '@/hooks/useMaintenanceSteps'
 
 interface CompleteTaskDialogProps {
   open: boolean
@@ -23,9 +24,17 @@ export function CompleteTaskDialog({
   const [completedBy, setCompletedBy] = useState('')
   const [completedAt, setCompletedAt] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [notes, setNotes] = useState('')
+  const [checkedStepIds, setCheckedStepIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
 
   const users = useLiveQuery(() => db.users.toArray())
+  const steps = useStepsByTask(task.id)
+
+  function toggleStep(id: string) {
+    setCheckedStepIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -36,10 +45,12 @@ export function CompleteTaskDialog({
         completed_by: completedBy,
         completed_at: completedAt,
         notes: notes || undefined,
+        completed_step_ids: checkedStepIds.length > 0 ? checkedStepIds : undefined,
       })
       onClose()
       setCompletedBy('')
       setNotes('')
+      setCheckedStepIds([])
       setCompletedAt(format(new Date(), 'yyyy-MM-dd'))
     } finally {
       setSaving(false)
@@ -50,7 +61,7 @@ export function CompleteTaskDialog({
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
-        <Dialog.Content className="fixed z-50 bg-card rounded-xl shadow-xl p-5 w-[calc(100%-2rem)] max-w-sm left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <Dialog.Content className="fixed z-50 bg-card rounded-xl shadow-xl p-5 w-[calc(100%-2rem)] max-w-sm left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="font-semibold text-foreground">
               Completar tarea
@@ -110,6 +121,34 @@ export function CompleteTaskDialog({
                 className="gmao-input"
               />
             </div>
+
+            {/* Sub-pasos */}
+            {steps && steps.length > 0 && (
+              <div>
+                <label className="gmao-label mb-2">Sub-pasos (opcional)</label>
+                <div className="space-y-1.5 border border-border rounded-lg p-2.5">
+                  {steps.map((step) => (
+                    <label
+                      key={step.id}
+                      className="flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checkedStepIds.includes(step.id)}
+                        onChange={() => toggleStep(step.id)}
+                        className="accent-primary w-4 h-4 flex-shrink-0"
+                      />
+                      <span className="text-sm text-foreground">{step.description}</span>
+                    </label>
+                  ))}
+                </div>
+                {steps.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {checkedStepIds.length}/{steps.length} sub-pasos marcados
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Notas */}
             <div>

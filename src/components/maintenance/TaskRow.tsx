@@ -13,7 +13,7 @@ interface TaskRowProps {
 }
 
 function getDueDateInfo(dateStr: string): { label: string; strip: string; badgeClass: string } {
-  const date = parseISO(dateStr + 'T00:00:00')
+  const date = parseISO(dateStr)
   if (isPast(date) && !isToday(date)) {
     return { label: 'Vencida', strip: 'strip-red', badgeClass: 'gmao-badge gmao-badge-red' }
   }

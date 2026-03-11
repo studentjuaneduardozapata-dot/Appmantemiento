@@ -31,11 +31,12 @@ const RECONNECT_DELAY_MS = 10_000
 let channels: Map<RealtimeTable, RealtimeChannel> = new Map()
 
 function subscribeToTable(table: RealtimeTable): void {
-  // Limpiar canal previo si existe
+  // Eliminar del mapa ANTES de llamar removeChannel para que el callback
+  // CLOSED del canal viejo no programe un reconnect innecesario
   const existing = channels.get(table)
   if (existing) {
-    supabase.removeChannel(existing)
     channels.delete(table)
+    supabase.removeChannel(existing)
   }
 
   const channel = supabase
@@ -51,6 +52,8 @@ function subscribeToTable(table: RealtimeTable): void {
       if (status === 'SUBSCRIBED') {
         syncLogger.debug(`Realtime suscrito: ${table}`)
       } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+        // Solo reconectar si este canal es todavía el activo (no fue reemplazado)
+        if (channels.get(table) !== channel) return
         syncLogger.warn(`Realtime ${status}: ${table} — reconectando en ${RECONNECT_DELAY_MS / 1000}s`)
         channels.delete(table)
         setTimeout(() => subscribeToTable(table), RECONNECT_DELAY_MS)
@@ -67,10 +70,11 @@ export function startRealtime(): void {
 }
 
 export function stopRealtime(): void {
-  for (const channel of channels.values()) {
+  const toRemove = [...channels.values()]
+  channels = new Map() // Limpiar primero para que CLOSED no programe reconnects
+  for (const channel of toRemove) {
     supabase.removeChannel(channel)
   }
-  channels = new Map()
   syncLogger.info('Realtime desuscrito')
 }
 

@@ -1,7 +1,7 @@
 import { db } from '@/lib/db'
 import { networkStatus } from './networkStatus'
 import { processPending, purgeInvalidQueueItems, purgeCompletedQueueItems } from './syncQueue'
-import { syncBlobs } from './blobSync'
+import { syncBlobs, purgeOldBlobs } from './blobSync'
 import { pullAll, purgeOldDeletedRecords } from './initialSync'
 import { startRealtime, stopRealtime } from './realtimeSync'
 import { syncLogger } from './syncLogger'
@@ -48,6 +48,7 @@ class SyncManager {
       await purgeCompletedQueueItems()
       await purgeInvalidQueueItems()
       await syncBlobs()
+      await purgeOldBlobs()
       await processPending()
       await pullAll()
 

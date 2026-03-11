@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { format, addDays, startOfWeek, addWeeks, startOfMonth, addMonths } from 'date-fns'
+import { format, addDays, startOfMonth, endOfMonth, addMonths } from 'date-fns'
 import { es } from 'date-fns/locale'
 import {
   AlertTriangle,
@@ -12,8 +12,6 @@ import {
   WifiOff,
   RefreshCw,
   Settings,
-  CalendarDays,
-  LayoutGrid,
   Plus,
   Zap,
 } from 'lucide-react'
@@ -21,8 +19,9 @@ import { db } from '@/lib/db'
 import type { MaintenanceTask, Incident } from '@/lib/db'
 import { cn } from '@/lib/utils'
 import { useSyncContext } from '@/contexts/SyncContext'
-import { WeekView } from '@/components/maintenance/WeekView'
 import { MonthView } from '@/components/maintenance/MonthView'
+import { DayDetailModal } from '@/components/maintenance/DayDetailModal'
+import { useIncidentsInRange } from '@/hooks/useIncidents'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -135,36 +134,21 @@ function IncidentCompactRow({ incident, assetName }: { incident: Incident; asset
 
 // ─── Página principal ──────────────────────────────────────────────────────────
 
-type ViewMode = 'week' | 'month'
-
 export default function TodayPage() {
   const navigate = useNavigate()
   const { isOnline, isSyncing, lastSync, triggerSync } = useSyncContext()
 
   // ── Cronograma state ──
-  const [mode, setMode] = useState<ViewMode>('month')
-  const [weekAnchor, setWeekAnchor] = useState(() =>
-    startOfWeek(new Date(), { weekStartsOn: 1 })
-  )
   const [monthAnchor, setMonthAnchor] = useState(() => startOfMonth(new Date()))
-
-  function handleWeekChange(dir: -1 | 1) {
-    setWeekAnchor((prev) => addWeeks(prev, dir))
-  }
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
   function handleMonthChange(dir: -1 | 1) {
     setMonthAnchor((prev) => addMonths(prev, dir))
   }
 
-  function handleDayClick(dateStr: string) {
-    const date = new Date(dateStr + 'T00:00:00')
-    setWeekAnchor(startOfWeek(date, { weekStartsOn: 1 }))
-    setMode('week')
-  }
-
-  function handleTaskClick(_taskId: string, planId: string) {
-    navigate(`/schedule/plan/${planId}`)
-  }
+  const monthFrom = format(startOfMonth(monthAnchor), 'yyyy-MM-dd')
+  const monthTo = format(endOfMonth(monthAnchor), 'yyyy-MM-dd')
+  const calendarIncidents = useIncidentsInRange(monthFrom, monthTo)
 
   // ── Prioridades del día ──
   const today = todayStr()
@@ -370,55 +354,29 @@ export default function TodayPage() {
         <div className="pt-2">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-bold text-foreground">Cronograma</h2>
-            <div className="flex items-center gap-2">
-              <div className="flex bg-secondary rounded-lg p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setMode('week')}
-                  className={cn(
-                    'p-1.5 rounded-md transition-colors',
-                    mode === 'week' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarDays className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode('month')}
-                  className={cn(
-                    'p-1.5 rounded-md transition-colors',
-                    mode === 'month' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground'
-                  )}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-              </div>
-              <button
-                onClick={() => navigate('/schedule/new-plan')}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
-              >
-                <Plus className="w-4 h-4" />
-                Plan
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/schedule/new-plan')}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4" />
+              Plan
+            </button>
           </div>
 
           <div className="bg-card border border-border rounded-xl overflow-hidden">
-            {mode === 'week' ? (
-              <WeekView
-                weekStart={weekAnchor}
-                onWeekChange={handleWeekChange}
-                onTaskClick={handleTaskClick}
-              />
-            ) : (
-              <MonthView
-                month={monthAnchor}
-                onMonthChange={handleMonthChange}
-                onDayClick={handleDayClick}
-              />
-            )}
+            <MonthView
+              month={monthAnchor}
+              onMonthChange={handleMonthChange}
+              onDayClick={(date) => setSelectedDay(date)}
+              incidents={calendarIncidents ?? []}
+            />
           </div>
         </div>
+
+        <DayDetailModal
+          date={selectedDay}
+          onClose={() => setSelectedDay(null)}
+        />
 
         {/* Spacer para FAB */}
         <div className="h-16" />

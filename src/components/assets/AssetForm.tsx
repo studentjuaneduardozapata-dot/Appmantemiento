@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -38,6 +39,8 @@ export function AssetForm({
   )
   const areas = useLiveQuery(() => db.areas.orderBy('sort_order').filter((a) => !a.deleted_at).toArray())
 
+  const [isImageLoading, setIsImageLoading] = useState(false)
+
   const {
     register,
     handleSubmit,
@@ -69,6 +72,7 @@ export function AssetForm({
               value={field.value}
               onChange={field.onChange}
               onClear={() => field.onChange('')}
+              onLoadingChange={setIsImageLoading}
             />
           )}
         />
@@ -179,10 +183,10 @@ export function AssetForm({
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isImageLoading}
         className="gmao-btn-primary"
       >
-        {isSubmitting ? 'Guardando...' : submitLabel}
+        {isImageLoading ? 'Procesando imagen...' : isSubmitting ? 'Guardando...' : submitLabel}
       </button>
     </form>
   )

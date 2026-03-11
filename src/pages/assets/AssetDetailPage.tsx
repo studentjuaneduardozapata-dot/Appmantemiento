@@ -242,7 +242,7 @@ export default function AssetDetailPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{task.description}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {format(new Date(task.next_due_date + 'T00:00:00'), 'dd MMM yyyy', { locale: es })}
+                      {format(new Date(task.next_due_date), 'dd MMM yyyy', { locale: es })}
                     </p>
                   </div>
                   <span className={cn('text-xs px-2 py-1 rounded-full font-medium flex-shrink-0', ts.className)}>

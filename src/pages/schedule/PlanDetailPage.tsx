@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { db } from '@/lib/db'
 import { useMaintenancePlan, deleteMaintenancePlan } from '@/hooks/useMaintenancePlans'
@@ -51,6 +51,13 @@ export default function PlanDetailPage() {
         <h1 className="flex-1 text-base font-semibold text-foreground truncate">
           {plan.title}
         </h1>
+        <button
+          type="button"
+          onClick={() => navigate(`/schedule/plan/${id}/edit`)}
+          className="p-1.5 text-muted-foreground hover:text-primary"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
         <button
           type="button"
           onClick={() => setDeleteOpen(true)}

@@ -2,7 +2,7 @@ import { db, generateId } from '@/lib/db'
 import type { SyncOperation } from '@/types'
 import { supabase } from '@/integrations/supabase/client'
 import { syncLogger } from './syncLogger'
-import { reconcileAreaId } from './deduplication'
+import { reconcileAreaId, reconcileCategoryId } from './deduplication'
 import { getTable } from './dbAccess'
 
 const MAX_RETRIES = 3
@@ -47,6 +47,12 @@ export async function purgeCompletedQueueItems(): Promise<void> {
     .delete()
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isValidUUID(value: unknown): boolean {
+  return typeof value === 'string' && UUID_REGEX.test(value)
+}
+
 export async function purgeInvalidQueueItems(): Promise<void> {
   // areas: 'code' is NOT NULL in Supabase — mark items without it as failed
   await db.sync_queue
@@ -68,6 +74,17 @@ export async function purgeInvalidQueueItems(): Promise<void> {
       item.last_error.includes('areas_code_key')
     )
     .modify({ status: 'pending', retry_count: 0 })
+
+  // Cualquier tabla: 'id' debe ser UUID válido — Supabase rechaza con 400 si no lo es.
+  // Esto captura cualquier registro seed o creado con IDs de formato incorrecto
+  // antes de que la migración Dexie v6 pueda corregirlos.
+  await db.sync_queue
+    .filter((item) =>
+      (item.status === 'pending' || item.status === 'processing') &&
+      item.operation !== 'delete' &&
+      !isValidUUID(item.payload.id)
+    )
+    .modify({ status: 'failed', last_error: 'Payload inválido: id no es un UUID válido' })
 }
 
 export async function processPending(): Promise<void> {
@@ -115,6 +132,9 @@ export async function processPending(): Promise<void> {
         // Unique constraint: el registro ya existe en Supabase bajo otro ID
         if (item.table === 'areas' && err.conflictField === 'code' && err.conflictValue) {
           await reconcileAreaId(item.payload.id as string, err.conflictValue as string)
+        }
+        if (item.table === 'asset_categories' && err.conflictField === 'name' && err.conflictValue) {
+          await reconcileCategoryId(item.payload.id as string, err.conflictValue as string)
         }
         await db.sync_queue.update(item.autoId!, { status: 'completed' })
         continue
@@ -164,6 +184,9 @@ async function pushToSupabase(
       // Detectar qué constraint causó el conflicto para poder reconciliar
       if (table === 'areas' && error.message.includes('areas_code_key')) {
         throw new AlreadySyncedError('code', payload.code)
+      }
+      if (table === 'asset_categories' && error.message.includes('asset_categories_name_key')) {
+        throw new AlreadySyncedError('name', payload.name)
       }
       throw new AlreadySyncedError()
     }

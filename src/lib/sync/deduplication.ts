@@ -88,6 +88,54 @@ export async function deduplicateCategoriesByName(pulledCats: Record<string, unk
 }
 
 /**
+ * Cuando Supabase rechaza una categoría por name duplicado (23505), busca el registro
+ * canónico en Supabase, actualiza Dexie con ese ID y redirige referencias en assets.
+ */
+export async function reconcileCategoryId(localId: string, name: string): Promise<void> {
+  try {
+    const { data: canonical, error } = await supabase
+      .from('asset_categories')
+      .select('*')
+      .eq('name', name)
+      .maybeSingle()
+
+    if (error || !canonical) {
+      syncLogger.warn(`reconcileCategoryId: no se encontró categoría canónica para name=${name}`)
+      return
+    }
+
+    const canonicalId = canonical.id as string
+    if (canonicalId === localId) return
+
+    // Guardar versión canónica de Supabase en Dexie
+    await db.asset_categories.put(canonical)
+
+    // Redirigir activos que referencian el ID local al ID canónico
+    await db.assets
+      .where('category_id').equals(localId)
+      .modify({ category_id: canonicalId, _synced: false })
+
+    // Actualizar payloads en cola pendiente (assets que aún no se han enviado)
+    await db.sync_queue
+      .where('table').equals('assets')
+      .and((item) =>
+        (item.status === 'pending' || item.status === 'processing') &&
+        (item.payload as Record<string, unknown>).category_id === localId
+      )
+      .modify((item) => {
+        item.payload = { ...item.payload, category_id: canonicalId }
+      })
+
+    // Eliminar la categoría duplicada local
+    await db.asset_categories.delete(localId)
+
+    syncLogger.info(`Categoría reconciliada: ${localId} → ${canonicalId} (name: ${name})`)
+  } catch (err) {
+    syncLogger.warn(`Error en reconcileCategoryId(${localId}, ${name})`, err)
+  }
+}
+
+/**
  * Cuando Supabase rechaza un área por code duplicado, esto significa que la tabla
  * ya tiene un área canónica con ese code (distinto ID). Actualizamos Dexie para
  * usar el ID canónico y redirigimos todas las referencias.

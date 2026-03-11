@@ -57,6 +57,7 @@ export async function completeTask(
     notes?: string
     photo_url?: string
     completed_at: string
+    completed_step_ids?: string[]
   }
 ): Promise<void> {
   const now = new Date().toISOString()
@@ -92,6 +93,7 @@ export async function completeTask(
             notes: logData.notes,
             photo_url: logData.photo_url,
             completed_at: logData.completed_at,
+            completed_step_ids: logData.completed_step_ids,
             created_at: now,
             _synced: false,
           }

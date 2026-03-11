@@ -14,23 +14,25 @@ import {
 import { es } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTasksInRange } from '@/hooks/useMaintenanceTasks'
+import type { Incident } from '@/lib/db'
 import { cn } from '@/lib/utils'
 
 interface MonthViewProps {
   month: Date
   onMonthChange: (direction: -1 | 1) => void
   onDayClick: (date: string) => void
+  incidents?: Incident[]
 }
 
 function getDotColor(dateStr: string, status: string): string {
   if (status === 'completada') return 'bg-gray-400'
-  const date = parseISO(dateStr + 'T00:00:00')
+  const date = parseISO(dateStr)
   if (isPast(date) && !isToday(date)) return 'bg-red-500'
   if (isToday(date)) return 'bg-amber-400'
   return 'bg-green-500'
 }
 
-export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) {
+export function MonthView({ month, onMonthChange, onDayClick, incidents = [] }: MonthViewProps) {
   const monthStart = startOfMonth(month)
   const monthEnd = endOfMonth(month)
   const calStart = startOfWeek(monthStart, { weekStartsOn: 1 })
@@ -49,6 +51,16 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
     }
     return map
   }, [tasks])
+
+  const incidentsByDay = useMemo(() => {
+    const map = new Map<string, Incident[]>()
+    for (const inc of incidents) {
+      const key = inc.reported_at.slice(0, 10)
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(inc)
+    }
+    return map
+  }, [incidents])
 
   // Build calendar weeks
   const weeks: Date[][] = []
@@ -89,8 +101,14 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
           {week.map((day) => {
             const dayKey = format(day, 'yyyy-MM-dd')
             const dayTasks = tasksByDay.get(dayKey) ?? []
+            const dayIncidents = incidentsByDay.get(dayKey) ?? []
             const inMonth = isSameMonth(day, month)
             const today = isToday(day)
+
+            const hasOpenIncident = dayIncidents.some(
+              (i) => i.status === 'abierta' || i.status === 'en_progreso'
+            )
+            const hasClosedIncident = dayIncidents.some((i) => i.status === 'cerrada')
 
             return (
               <button
@@ -114,6 +132,7 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
                   {format(day, 'd')}
                 </span>
 
+                {/* Task dots */}
                 {dayTasks.length > 0 && (
                   <div className="flex flex-wrap gap-0.5 mt-0.5 justify-center">
                     {dayTasks.slice(0, 4).map((task) => (
@@ -129,6 +148,18 @@ export function MonthView({ month, onMonthChange, onDayClick }: MonthViewProps) 
                       <span className="text-[9px] text-muted-foreground leading-none">
                         +{dayTasks.length - 4}
                       </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Incident dots */}
+                {(hasOpenIncident || hasClosedIncident) && (
+                  <div className="flex gap-0.5 mt-0.5 justify-center">
+                    {hasOpenIncident && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                    )}
+                    {hasClosedIncident && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
                     )}
                   </div>
                 )}

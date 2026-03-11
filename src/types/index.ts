@@ -14,6 +14,7 @@ export type {
   MaintenanceTask,
   TaskStatus,
   MaintenanceLog,
+  MaintenanceTaskStep,
   AppNotification,
   NotificationType,
   OfflineFile,
@@ -66,10 +67,18 @@ export interface MaintenancePlanFormData {
   type: 'unico' | 'preventivo'
 }
 
+export interface MaintenanceTaskStepFormData {
+  id?: string
+  description: string
+  sort_order: number
+}
+
 export interface MaintenanceTaskFormData {
+  id?: string
   description: string
   frequency_days: number
   next_due_date?: string
+  steps?: MaintenanceTaskStepFormData[]
 }
 
 export interface AssetFormData {

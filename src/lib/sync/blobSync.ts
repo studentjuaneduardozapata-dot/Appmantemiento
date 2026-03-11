@@ -65,15 +65,47 @@ export async function syncBlobs(): Promise<void> {
             if (updated) await enqueue('maintenance_logs', 'update', updated as unknown as Record<string, unknown>)
           }
 
-          // Eliminar el blob local — ya no es necesario, la URL pública está en el registro
-          // El Service Worker cacheará la imagen en el primer acceso
-          await db.offline_files.delete(file.id)
+          // BUG 4: Desbloquear items zombi en sync_queue cuyo payload aún tiene el blob local ID.
+          // Al reemplazar el ID por la URL pública, el processPending podrá enviarlos a Supabase.
+          const zombieItems = await db.sync_queue
+            .filter(
+              (item) =>
+                (item.status === 'pending' || item.status === 'processing') &&
+                Object.values(item.payload).some((v) => v === file.id)
+            )
+            .toArray()
+          for (const zombie of zombieItems) {
+            const updatedPayload = Object.fromEntries(
+              Object.entries(zombie.payload).map(([k, v]) => [k, v === file.id ? publicUrl : v])
+            )
+            await db.sync_queue.update(zombie.autoId!, {
+              payload: updatedPayload,
+              status: 'pending',
+              retry_count: 0,
+              last_error: undefined,
+            })
+          }
+
+          // BUG 2: Conservar el blob local como fallback offline (NO eliminar).
+          // Se marca con uploaded_url para que no se vuelva a procesar.
+          // La limpieza se hace en purgeOldBlobs() después de 30 días.
+          await db.offline_files.update(file.id, { uploaded_url: publicUrl })
         }
       )
 
-      syncLogger.info(`Imagen subida y blob eliminado: ${file.id} → ${publicUrl}`)
+      syncLogger.info(`Imagen subida, blob conservado con URL: ${file.id} → ${publicUrl}`)
     } catch (txErr) {
       syncLogger.warn(`Error al actualizar referencias de imagen ${file.id}`, txErr)
     }
   }
+}
+
+// Limpieza periódica: elimina blobs locales que ya fueron subidos hace más de 30 días.
+// El blob se conserva durante 30 días para servir como fallback offline después del sync.
+export async function purgeOldBlobs(): Promise<void> {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString()
+  const deleted = await db.offline_files
+    .filter((f) => !!f.uploaded_url && f.created_at < thirtyDaysAgo)
+    .delete()
+  if (deleted > 0) syncLogger.info(`Blobs locales viejos eliminados: ${deleted}`)
 }

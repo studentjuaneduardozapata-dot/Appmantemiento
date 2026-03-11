@@ -27,6 +27,21 @@ export function useIncident(id: string): Incident | undefined {
   return useLiveQuery(() => db.incidents.get(id), [id])
 }
 
+export function useIncidentsInRange(from: string, to: string): Incident[] | undefined {
+  return useLiveQuery(
+    () =>
+      db.incidents
+        .filter(
+          (i) =>
+            !i.deleted_at &&
+            i.reported_at.slice(0, 10) >= from &&
+            i.reported_at.slice(0, 10) <= to
+        )
+        .toArray(),
+    [from, to]
+  )
+}
+
 // ─── Mutations ─────────────────────────────────────────────────────────────────
 
 export async function createIncident(data: IncidentFormData): Promise<string> {

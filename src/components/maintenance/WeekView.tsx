@@ -15,7 +15,7 @@ interface WeekViewProps {
 
 function getTaskChipColor(dateStr: string, status: string): string {
   if (status === 'completada') return 'bg-gray-200 text-gray-500'
-  const date = parseISO(dateStr + 'T00:00:00')
+  const date = parseISO(dateStr)
   if (isPast(date) && !isToday(date)) return 'bg-red-100 text-red-700'
   if (isToday(date) || isTomorrow(date)) return 'bg-amber-100 text-amber-700'
   return 'bg-green-100 text-green-700'

@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { Camera, X } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Camera, Image as ImageIcon, X } from 'lucide-react'
 import { compressImage } from '@/lib/imageCompression'
 import { db, generateId } from '@/lib/db'
 import { toast } from 'sonner'
@@ -9,16 +9,24 @@ interface ImagePickerProps {
   value?: string
   onChange: (url: string) => void
   onClear?: () => void
+  /** Notifica al padre cuando la compresión está en curso para bloquear el submit (BUG 1) */
+  onLoadingChange?: (loading: boolean) => void
 }
 
-export function ImagePicker({ value, onChange, onClear }: ImagePickerProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
+export function ImagePicker({ value, onChange, onClear, onLoadingChange }: ImagePickerProps) {
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+  const [isCompressing, setIsCompressing] = useState(false)
   const previewSrc = useObjectUrl(value)
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
+
+    // BUG 1: señalar inicio de compresión para bloquear el submit del formulario padre
+    setIsCompressing(true)
+    onLoadingChange?.(true)
 
     try {
       const blob = await compressImage(file)
@@ -31,10 +39,20 @@ export function ImagePicker({ value, onChange, onClear }: ImagePickerProps) {
       onChange(localId)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al procesar imagen')
+    } finally {
+      // BUG 1: señalar fin de compresión siempre (éxito o error)
+      setIsCompressing(false)
+      onLoadingChange?.(false)
     }
   }
 
-  function handleClear() {
+  async function handleClear() {
+    // BUG 3: eliminar blob huérfano de offline_files al limpiar la imagen
+    if (value?.startsWith('local:')) {
+      await db.offline_files.delete(value).catch(() => {
+        // Ignorar si ya no existe
+      })
+    }
     onClear?.()
     onChange('')
   }
@@ -64,20 +82,43 @@ export function ImagePicker({ value, onChange, onClear }: ImagePickerProps) {
           </button>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-        >
-          <Camera className="w-6 h-6 mb-1" />
-          <span className="text-xs">Agregar foto</span>
-        </button>
+        // BUG 5: dos botones separados — Cámara (capture) y Galería (sin capture)
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={isCompressing}
+            onClick={() => cameraInputRef.current?.click()}
+            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+          >
+            <Camera className="w-6 h-6 mb-1" />
+            <span className="text-xs">{isCompressing ? 'Procesando...' : 'Cámara'}</span>
+          </button>
+          <button
+            type="button"
+            disabled={isCompressing}
+            onClick={() => galleryInputRef.current?.click()}
+            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+          >
+            <ImageIcon className="w-6 h-6 mb-1" />
+            <span className="text-xs">Galería</span>
+          </button>
+        </div>
       )}
+
+      {/* Input para cámara directa */}
       <input
-        ref={inputRef}
+        ref={cameraInputRef}
         type="file"
         accept="image/*"
         capture="environment"
+        className="hidden"
+        onChange={handleFile}
+      />
+      {/* Input para galería (sin capture — permite selección de archivo existente) */}
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
         className="hidden"
         onChange={handleFile}
       />

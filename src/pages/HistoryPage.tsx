@@ -352,13 +352,7 @@ export default function HistoryPage() {
                   )}
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-[10px] text-muted-foreground">
-                      {format(
-                        new Date(
-                          entry.date.includes('T') ? entry.date : entry.date + 'T00:00:00'
-                        ),
-                        'dd/MM/yyyy',
-                        { locale: es }
-                      )}
+                      {format(new Date(entry.date), 'dd/MM/yyyy', { locale: es })}
                     </span>
                     {entry.areaName && (
                       <span className="text-[10px] text-muted-foreground">· {entry.areaName}</span>
