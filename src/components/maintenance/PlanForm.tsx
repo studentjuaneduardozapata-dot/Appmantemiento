@@ -3,7 +3,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format } from 'date-fns'
-import { Plus, Trash2, ChevronDown, ChevronUp, ListChecks } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, ListChecks, Loader2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import type { MaintenancePlanFormData, MaintenanceTaskFormData, MaintenanceTaskStepFormData } from '@/types'
@@ -400,7 +400,9 @@ export function PlanForm({ onSubmit, isSubmitting, initialValues, submitLabel, p
         disabled={isSubmitting}
         className="gmao-btn-primary"
       >
-        {isSubmitting ? 'Guardando...' : label}
+        {isSubmitting
+          ? <><Loader2 className="w-4 h-4 animate-spin inline mr-1.5" aria-hidden="true" />Guardando…</>
+          : label}
       </button>
     </form>
   )

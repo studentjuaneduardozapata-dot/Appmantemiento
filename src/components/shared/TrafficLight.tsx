@@ -6,13 +6,13 @@ interface TrafficLightProps {
   size?: 'sm' | 'md'
 }
 
-const COLOR_MAP: Record<string, { ring: string; dot: string }> = {
-  red:    { ring: 'bg-red-100',   dot: 'bg-red-500' },
-  yellow: { ring: 'bg-amber-100', dot: 'bg-amber-400' },
-  green:  { ring: 'bg-green-100', dot: 'bg-green-500' },
+const COLOR_MAP: Record<string, { ring: string; dot: string; label: string }> = {
+  red:    { ring: 'bg-red-100',   dot: 'bg-red-500',   label: 'Estado: falla activa' },
+  yellow: { ring: 'bg-amber-100', dot: 'bg-amber-400', label: 'Estado: mantenimiento próximo' },
+  green:  { ring: 'bg-green-100', dot: 'bg-green-500', label: 'Estado: operativo' },
 }
 
-const FALLBACK = { ring: 'bg-gray-100', dot: 'bg-gray-300' }
+const FALLBACK = { ring: 'bg-gray-100', dot: 'bg-gray-300', label: 'Estado: desconocido' }
 
 export function TrafficLight({ status, size = 'md' }: TrafficLightProps) {
   const colors = (status && COLOR_MAP[status]) ?? FALLBACK
@@ -21,13 +21,15 @@ export function TrafficLight({ status, size = 'md' }: TrafficLightProps) {
 
   return (
     <span
+      role="img"
+      aria-label={colors.label}
       className={cn(
         'rounded-full flex-shrink-0 inline-flex items-center justify-center',
         ringSize,
         colors.ring
       )}
     >
-      <span className={cn('rounded-full', dotSize, colors.dot)} />
+      <span className={cn('rounded-full', dotSize, colors.dot)} aria-hidden="true" />
     </span>
   )
 }

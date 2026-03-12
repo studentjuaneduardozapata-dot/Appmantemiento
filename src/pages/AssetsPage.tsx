@@ -74,23 +74,29 @@ export default function AssetsPage() {
   const isLoading = areas === undefined
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <PageHeader
         title="AGROACTIVOS"
         action={
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => navigate('/incidents/new')}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700"
+              aria-label="Reportar nueva falla"
+              style={{ touchAction: 'manipulation' }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-white text-xs font-bold rounded-md hover:brightness-90 font-display tracking-wide focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none"
             >
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="w-4 h-4" aria-hidden="true" />
               Reportar Falla
             </button>
             <button
+              type="button"
               onClick={() => navigate('/assets/new')}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700"
+              aria-label="Nuevo activo"
+              style={{ touchAction: 'manipulation' }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-md hover:brightness-93 font-display tracking-wide focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4" aria-hidden="true" />
               Nuevo Activo
             </button>
           </div>
@@ -135,7 +141,7 @@ export default function AssetsPage() {
               <p className="text-muted-foreground text-sm mb-3">Sin áreas registradas</p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
               {areas.map((area, index) => (
                 <AreaListItem
                   key={area.id}

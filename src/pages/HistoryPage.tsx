@@ -22,7 +22,7 @@ function toDateStr(d: Date): string {
 function StatCard({ title, value, color, bg }: { title: string; value: number; color: string; bg: string }) {
   return (
     <div className={cn('rounded-xl p-3 border border-border', bg)}>
-      <p className={cn('text-2xl font-bold', color)}>{value}</p>
+      <p className={cn('text-2xl font-bold tabular-nums', color)}>{value}</p>
       <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{title}</p>
     </div>
   )
@@ -185,9 +185,11 @@ export default function HistoryPage() {
             <button
               key={p}
               type="button"
+              aria-pressed={period === p}
               onClick={() => setPeriod(p)}
+              style={{ touchAction: 'manipulation' }}
               className={cn(
-                'flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors',
+                'flex-1 text-xs font-medium py-1.5 rounded-lg border',
                 period === p
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-card text-muted-foreground border-border hover:bg-accent/50'
@@ -203,13 +205,17 @@ export default function HistoryPage() {
               type="date"
               value={customFrom}
               onChange={(e) => setCustomFrom(e.target.value)}
+              aria-label="Fecha desde"
+              autoComplete="off"
               className="gmao-input-sm flex-1"
             />
-            <span className="text-xs text-muted-foreground">—</span>
+            <span className="text-xs text-muted-foreground" aria-hidden="true">—</span>
             <input
               type="date"
               value={customTo}
               onChange={(e) => setCustomTo(e.target.value)}
+              aria-label="Fecha hasta"
+              autoComplete="off"
               className="gmao-input-sm flex-1"
             />
           </div>
@@ -278,9 +284,11 @@ export default function HistoryPage() {
             <button
               key={t}
               type="button"
+              aria-pressed={typeFilter === t}
               onClick={() => setTypeFilter(t)}
+              style={{ touchAction: 'manipulation' }}
               className={cn(
-                'flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors',
+                'flex-1 text-xs font-medium py-1.5 rounded-lg border',
                 typeFilter === t
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-card text-muted-foreground border-border hover:bg-accent/50'
@@ -295,6 +303,7 @@ export default function HistoryPage() {
           <select
             value={areaFilter}
             onChange={(e) => setAreaFilter(e.target.value)}
+            aria-label="Filtrar por área"
             className="gmao-input-sm flex-1"
           >
             <option value="">Todas las áreas</option>
@@ -307,6 +316,7 @@ export default function HistoryPage() {
           <select
             value={assetFilter}
             onChange={(e) => setAssetFilter(e.target.value)}
+            aria-label="Filtrar por activo"
             className="gmao-input-sm flex-1"
           >
             <option value="">Todos los activos</option>

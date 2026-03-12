@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { format } from 'date-fns'
-import { X } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import type { MaintenanceTask, MaintenancePlan } from '@/lib/db'
@@ -67,8 +67,8 @@ export function CompleteTaskDialog({
               Completar tarea
             </Dialog.Title>
             <Dialog.Close asChild>
-              <button type="button" className="p-1 text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
+              <button type="button" aria-label="Cerrar" className="p-1 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md">
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </Dialog.Close>
           </div>
@@ -80,11 +80,12 @@ export function CompleteTaskDialog({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Quién completó */}
             <div>
-              <label className="gmao-label">
+              <label htmlFor="ctd-completed-by" className="gmao-label">
                 Completado por <span className="text-destructive">*</span>
               </label>
               {users && users.length > 0 ? (
                 <select
+                  id="ctd-completed-by"
                   value={completedBy}
                   onChange={(e) => setCompletedBy(e.target.value)}
                   required
@@ -99,10 +100,12 @@ export function CompleteTaskDialog({
                 </select>
               ) : (
                 <input
+                  id="ctd-completed-by"
                   type="text"
                   value={completedBy}
                   onChange={(e) => setCompletedBy(e.target.value)}
                   required
+                  autoComplete="name"
                   placeholder="Nombre"
                   className="gmao-input"
                 />
@@ -111,13 +114,15 @@ export function CompleteTaskDialog({
 
             {/* Fecha */}
             <div>
-              <label className="gmao-label">
+              <label htmlFor="ctd-completed-at" className="gmao-label">
                 Fecha de ejecución
               </label>
               <input
+                id="ctd-completed-at"
                 type="date"
                 value={completedAt}
                 onChange={(e) => setCompletedAt(e.target.value)}
+                autoComplete="off"
                 className="gmao-input"
               />
             </div>
@@ -167,9 +172,11 @@ export function CompleteTaskDialog({
             <button
               type="submit"
               disabled={saving || !completedBy}
-              className="w-full py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="w-full py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
-              {saving ? 'Guardando...' : 'Marcar como completada'}
+              {saving
+                ? <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />Guardando…</>
+                : 'Marcar como completada'}
             </button>
           </form>
         </Dialog.Content>

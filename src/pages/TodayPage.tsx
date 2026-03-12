@@ -81,7 +81,7 @@ function StatusCard({
     <div className={cn('rounded-xl border-l-4 bg-card shadow-sm overflow-hidden flex flex-col', borderClass)}>
       {/* Header */}
       <div className={cn('flex items-center gap-1.5 px-3 py-2', bgClass)}>
-        <span className={cn('flex-shrink-0', colorClass)}>{icon}</span>
+        <span className={cn('flex-shrink-0', colorClass)} aria-hidden="true">{icon}</span>
         <span className={cn('font-semibold text-xs flex-1 truncate', colorClass)}>{title}</span>
         <span
           className={cn(
@@ -93,14 +93,14 @@ function StatusCard({
         </span>
       </div>
       {/* Body */}
-      <div className="flex-1 divide-y divide-gray-50">
+      <div className="flex-1 divide-y divide-border">
         {count === 0 ? (
-          <p className="px-3 py-2 text-[11px] text-gray-400">{emptyText}</p>
+          <p className="px-3 py-2 text-[11px] text-muted-foreground">{emptyText}</p>
         ) : (
           <>
             {children}
             {extraCount != null && extraCount > 0 && (
-              <p className="px-3 py-1.5 text-[10px] text-gray-400">+{extraCount} más</p>
+              <p className="px-3 py-1.5 text-[10px] text-muted-foreground">+{extraCount} más</p>
             )}
           </>
         )}
@@ -114,8 +114,8 @@ function StatusCard({
 function TaskCompactRow({ task, planTitle }: { task: MaintenanceTask; planTitle?: string }) {
   return (
     <div className="px-3 py-1.5">
-      <p className="text-[11px] font-medium text-gray-800 truncate">{task.description}</p>
-      {planTitle && <p className="text-[10px] text-gray-400 truncate">{planTitle}</p>}
+      <p className="text-[11px] font-medium text-foreground truncate">{task.description}</p>
+      {planTitle && <p className="text-[10px] text-muted-foreground truncate">{planTitle}</p>}
     </div>
   )
 }
@@ -124,11 +124,11 @@ function IncidentCompactRow({ incident, assetName }: { incident: Incident; asset
   return (
     <div className="px-3 py-1.5 flex items-center gap-1.5">
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-medium text-gray-800 truncate">
+        <p className="text-[11px] font-medium text-foreground truncate">
           {assetName ?? 'Activo desconocido'}
         </p>
         {incident.description && (
-          <p className="text-[10px] text-gray-400 truncate">{incident.description}</p>
+          <p className="text-[10px] text-muted-foreground truncate">{incident.description}</p>
         )}
       </div>
       <span
@@ -240,44 +240,46 @@ export default function TodayPage() {
   return (
     <div className="relative max-w-2xl mx-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-border px-4 py-3">
+      <header className="sticky top-0 z-10 bg-white border-b-2 border-primary px-4 py-3">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-base font-bold text-foreground capitalize">{dateLabel}</h1>
+            <h1 className="text-base font-bold font-display text-foreground capitalize">{dateLabel}</h1>
             <p className="text-xs text-muted-foreground">Panel de hoy</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-xs">
+            <div className="flex items-center gap-1 text-xs" aria-live="polite">
               {isOnline ? (
-                <Wifi className="w-3.5 h-3.5 text-primary" />
+                <Wifi className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
               ) : (
-                <WifiOff className="w-3.5 h-3.5 text-red-500" />
+                <WifiOff className="w-3.5 h-3.5 text-red-500" aria-hidden="true" />
               )}
+              <span className="sr-only">{isOnline ? 'En línea' : 'Sin conexión'}</span>
             </div>
             <button
+              type="button"
               onClick={triggerSync}
               disabled={isSyncing || !isOnline}
-              className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40 transition-colors"
-              title={
-                lastSync
-                  ? `Última sync: ${format(lastSync, 'HH:mm')}`
-                  : 'Sincronizar'
-              }
+              aria-label={lastSync ? `Sincronizar (última: ${format(lastSync, 'HH:mm')})` : 'Sincronizar'}
+              style={{ touchAction: 'manipulation' }}
+              className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
               <RefreshCw
                 className={cn('w-4 h-4 text-foreground', isSyncing && 'animate-spin')}
+                aria-hidden="true"
               />
             </button>
             <button
+              type="button"
               onClick={() => navigate('/admin')}
-              className="p-1.5 rounded-lg hover:bg-accent transition-colors md:hidden"
-              title="Administración"
+              aria-label="Administración"
+              style={{ touchAction: 'manipulation' }}
+              className="p-1.5 rounded-lg hover:bg-accent transition-colors md:hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
-              <Settings className="w-4 h-4 text-foreground" />
+              <Settings className="w-4 h-4 text-foreground" aria-hidden="true" />
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
@@ -374,17 +376,22 @@ export default function TodayPage() {
             <h2 className="text-sm font-bold text-foreground">Cronograma</h2>
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => navigate('/schedule/preventive')}
-                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors"
+                style={{ touchAction: 'manipulation' }}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
-                <ListChecks className="w-3.5 h-3.5" />
+                <ListChecks className="w-3.5 h-3.5" aria-hidden="true" />
                 Preventivos
               </button>
               <button
+                type="button"
                 onClick={() => navigate('/schedule/new-plan')}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
+                aria-label="Nuevo plan de mantenimiento"
+                style={{ touchAction: 'manipulation' }}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:brightness-93 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4" aria-hidden="true" />
                 Plan
               </button>
             </div>
@@ -412,11 +419,13 @@ export default function TodayPage() {
 
       {/* FAB — Escanear QR */}
       <button
+        type="button"
         onClick={() => navigate('/scan')}
-        className="fixed bottom-20 right-4 md:bottom-6 z-40 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center"
-        aria-label="Escanear QR"
+        aria-label="Escanear código QR"
+        style={{ touchAction: 'manipulation' }}
+        className="fixed bottom-20 right-4 md:bottom-6 z-40 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:brightness-93 active:scale-95 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
       >
-        <QrCode className="w-6 h-6" />
+        <QrCode className="w-6 h-6" aria-hidden="true" />
       </button>
     </div>
   )

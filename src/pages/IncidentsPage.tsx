@@ -32,21 +32,26 @@ export default function IncidentsPage() {
         title="Fallas"
         action={
           <button
+            type="button"
             onClick={() => navigate('/incidents/new')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-white text-xs font-bold rounded-md hover:brightness-90 transition-all font-display tracking-wide"
+            aria-label="Nueva falla"
+            style={{ touchAction: 'manipulation' }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-white text-xs font-bold rounded-md hover:brightness-90 font-display tracking-wide focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5" aria-hidden="true" />
             Nueva
           </button>
         }
       />
 
       {/* Tabs */}
-      <div className="flex bg-white border-b border-border overflow-x-auto">
+      <div role="tablist" className="flex bg-white border-b border-border overflow-x-auto">
         {TABS.map(tab => (
           <button
             key={tab.value}
             type="button"
+            role="tab"
+            aria-selected={activeTab === tab.value}
             onClick={() => setActiveTab(tab.value)}
             className={cn(
               'gmao-tab',

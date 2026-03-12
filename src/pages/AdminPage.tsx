@@ -53,7 +53,7 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
         <p className="text-center text-sm text-muted-foreground mb-8">Ingresa el PIN de acceso</p>
 
         {/* Dots */}
-        <div className={cn('flex justify-center gap-4 mb-8', error && 'animate-bounce')}>
+        <div className={cn('flex justify-center gap-4 mb-8', error && 'motion-safe:animate-bounce')}>
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
@@ -75,10 +75,12 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
             <button
               key={idx}
               type="button"
+              aria-label={k === '⌫' ? 'Borrar dígito' : k ? `Dígito ${k}` : undefined}
               onClick={() => (k === '⌫' ? handleBackspace() : k ? handleDigit(k) : undefined)}
               disabled={!k && k !== '⌫'}
+              style={{ touchAction: 'manipulation' }}
               className={cn(
-                'h-14 rounded-xl text-xl font-semibold transition-colors',
+                'h-14 rounded-xl text-xl font-semibold',
                 k
                   ? 'bg-card border border-border text-foreground hover:bg-accent active:bg-accent/80'
                   : 'invisible'
@@ -167,17 +169,21 @@ function UsersTab() {
                   />
                   <button
                     type="button"
+                    aria-label="Guardar"
+                    style={{ touchAction: 'manipulation' }}
                     onClick={() => handleSaveEdit(u.id)}
-                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
+                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:outline-none"
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
                     type="button"
+                    aria-label="Cancelar"
+                    style={{ touchAction: 'manipulation' }}
                     onClick={() => setEditingId(null)}
-                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
+                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               ) : (
@@ -186,20 +192,24 @@ function UsersTab() {
                   <div className="flex gap-1">
                     <button
                       type="button"
+                      aria-label={`Editar usuario ${u.name}`}
+                      style={{ touchAction: 'manipulation' }}
                       onClick={() => {
                         setEditingId(u.id)
                         setEditName(u.name)
                       }}
-                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                     >
-                      <Pencil className="w-3.5 h-3.5" />
+                      <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                     <button
                       type="button"
+                      aria-label={`Eliminar usuario ${u.name}`}
+                      style={{ touchAction: 'manipulation' }}
                       onClick={() => setDeleteTarget(u)}
-                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -217,17 +227,21 @@ function UsersTab() {
                 />
                 <button
                   type="button"
+                  aria-label="Guardar"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={handleAdd}
-                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
+                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:outline-none"
                 >
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
+                  aria-label="Cancelar"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={() => setAddingNew(false)}
-                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
+                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             )}
@@ -238,9 +252,10 @@ function UsersTab() {
         <button
           type="button"
           onClick={() => setAddingNew(true)}
+          style={{ touchAction: 'manipulation' }}
           className="flex items-center gap-2 text-sm text-primary font-medium px-1"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
           Agregar usuario
         </button>
       )}
@@ -360,17 +375,21 @@ function AreasTab() {
                   />
                   <button
                     type="button"
+                    aria-label="Guardar"
+                    style={{ touchAction: 'manipulation' }}
                     onClick={() => handleSaveEdit(a.id)}
-                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
+                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:outline-none"
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
                     type="button"
+                    aria-label="Cancelar"
+                    style={{ touchAction: 'manipulation' }}
                     onClick={() => setEditingId(null)}
-                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
+                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               ) : (
@@ -382,37 +401,45 @@ function AreasTab() {
                   <div className="flex gap-1">
                     <button
                       type="button"
+                      aria-label={`Mover ${a.name} arriba`}
+                      style={{ touchAction: 'manipulation' }}
                       onClick={() => handleReorder(a, -1)}
                       disabled={idx === 0}
-                      className="p-1 text-muted-foreground disabled:opacity-30 hover:text-foreground"
+                      className="p-2 text-muted-foreground disabled:opacity-30 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
                     >
-                      <ChevronUp className="w-3.5 h-3.5" />
+                      <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                     <button
                       type="button"
+                      aria-label={`Mover ${a.name} abajo`}
+                      style={{ touchAction: 'manipulation' }}
                       onClick={() => handleReorder(a, 1)}
                       disabled={areas !== undefined && idx === areas.length - 1}
-                      className="p-1 text-muted-foreground disabled:opacity-30 hover:text-foreground"
+                      className="p-2 text-muted-foreground disabled:opacity-30 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
                     >
-                      <ChevronDown className="w-3.5 h-3.5" />
+                      <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                     <button
                       type="button"
+                      aria-label={`Editar área ${a.name}`}
+                      style={{ touchAction: 'manipulation' }}
                       onClick={() => {
                         setEditingId(a.id)
                         setEditCode(a.code)
                         setEditName(a.name)
                       }}
-                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                     >
-                      <Pencil className="w-3.5 h-3.5" />
+                      <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                     <button
                       type="button"
+                      aria-label={`Eliminar área ${a.name}`}
+                      style={{ touchAction: 'manipulation' }}
                       onClick={() => setDeleteTarget(a)}
-                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -436,17 +463,21 @@ function AreasTab() {
                 />
                 <button
                   type="button"
+                  aria-label="Guardar"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={handleAdd}
-                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
+                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:outline-none"
                 >
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
+                  aria-label="Cancelar"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={() => setAddingNew(false)}
-                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
+                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             )}
@@ -457,9 +488,10 @@ function AreasTab() {
         <button
           type="button"
           onClick={() => setAddingNew(true)}
+          style={{ touchAction: 'manipulation' }}
           className="flex items-center gap-2 text-sm text-primary font-medium px-1"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
           Agregar área
         </button>
       )}
@@ -548,17 +580,21 @@ function CategoriesTab() {
                   />
                   <button
                     type="button"
+                    aria-label="Guardar"
+                    style={{ touchAction: 'manipulation' }}
                     onClick={() => handleSaveEdit(c.id)}
-                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
+                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:outline-none"
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
                     type="button"
+                    aria-label="Cancelar"
+                    style={{ touchAction: 'manipulation' }}
                     onClick={() => setEditingId(null)}
-                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
+                    className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               ) : (
@@ -567,20 +603,24 @@ function CategoriesTab() {
                   <div className="flex gap-1">
                     <button
                       type="button"
+                      aria-label={`Editar categoría ${c.name}`}
+                      style={{ touchAction: 'manipulation' }}
                       onClick={() => {
                         setEditingId(c.id)
                         setEditName(c.name)
                       }}
-                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                     >
-                      <Pencil className="w-3.5 h-3.5" />
+                      <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                     <button
                       type="button"
+                      aria-label={`Eliminar categoría ${c.name}`}
+                      style={{ touchAction: 'manipulation' }}
                       onClick={() => setDeleteTarget(c)}
-                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -598,17 +638,21 @@ function CategoriesTab() {
                 />
                 <button
                   type="button"
+                  aria-label="Guardar"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={handleAdd}
-                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
+                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:outline-none"
                 >
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
+                  aria-label="Cancelar"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={() => setAddingNew(false)}
-                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg"
+                  className="p-1.5 text-muted-foreground hover:bg-accent/50 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             )}
@@ -619,9 +663,10 @@ function CategoriesTab() {
         <button
           type="button"
           onClick={() => setAddingNew(true)}
+          style={{ touchAction: 'manipulation' }}
           className="flex items-center gap-2 text-sm text-primary font-medium px-1"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
           Agregar categoría
         </button>
       )}
@@ -665,13 +710,15 @@ function PinTab() {
     <div className="bg-card rounded-xl border border-border p-4 space-y-4">
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-foreground mb-1">
+          <label htmlFor="pin-new" className="block text-xs font-medium text-foreground mb-1">
             Nuevo PIN (4 dígitos)
           </label>
           <input
+            id="pin-new"
             type="password"
             inputMode="numeric"
             maxLength={4}
+            autoComplete="new-password"
             value={newPin}
             onChange={(e) => {
               setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))
@@ -682,11 +729,13 @@ function PinTab() {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-foreground mb-1">Confirmar PIN</label>
+          <label htmlFor="pin-confirm" className="block text-xs font-medium text-foreground mb-1">Confirmar PIN</label>
           <input
+            id="pin-confirm"
             type="password"
             inputMode="numeric"
             maxLength={4}
+            autoComplete="new-password"
             value={confirmPin}
             onChange={(e) => {
               setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))
@@ -696,7 +745,7 @@ function PinTab() {
             className="gmao-input text-center tracking-widest"
           />
         </div>
-        {errorMsg && <p className="gmao-error">{errorMsg}</p>}
+        {errorMsg && <p className="gmao-error" role="alert">{errorMsg}</p>}
       </div>
       <button
         type="button"
@@ -787,27 +836,32 @@ function AdminPanel({ onLock }: { onLock: () => void }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-card border-b-2 border-primary px-4 py-3 flex items-center gap-3">
         <button
           type="button"
           onClick={onLock}
-          className="p-1 -ml-1 text-foreground hover:text-primary"
+          aria-label="Salir del panel de administración"
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 -ml-2 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
         </button>
-        <h1 className="text-base font-semibold text-foreground">Administración</h1>
+        <h1 className="text-base font-semibold font-display text-foreground">Administración</h1>
       </div>
 
       {/* Tab bar */}
       <div className="border-b border-border px-4">
-        <div className="flex flex-wrap gap-1">
+        <div role="tablist" className="flex flex-wrap gap-1">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
+              style={{ touchAction: 'manipulation' }}
               className={cn(
-                'text-xs font-medium py-3 px-3 border-b-2 transition-colors',
+                'text-xs font-medium py-3 px-3 border-b-2',
                 activeTab === tab.id
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'

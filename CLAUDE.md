@@ -49,6 +49,8 @@ Campo `completed_step_ids` en `maintenance_logs` — solo Dexie, no en Supabase.
 - @src/types/index.ts — re-exporta tipos desde db.ts + tipos auxiliares UI
 - @src/lib/seedData.ts — datos iniciales (categorías, áreas)
 - @src/app/AppRouter.tsx — todas las rutas
+- @src/app/Layout.tsx — shell con skip link y offset md:ml-56 (P0 layout)
+- @src/index.css — design system global, prefers-reduced-motion, touch-action
 
 ## Rutas actuales
 ```
@@ -87,6 +89,17 @@ npm run lint         # linting
 - Respuesta: código + 1 línea confirmación. Sin explicaciones largas.
 - Soft-delete con `deleted_at` — nunca DELETE físico en tablas principales
 - `push` usa `upsert` — idempotente, last-write-wins
+
+## Reglas de accesibilidad (Vercel Web Interface Guidelines)
+- Botones icon-only DEBEN tener `aria-label` descriptivo
+- Iconos decorativos DEBEN tener `aria-hidden="true"`
+- NO usar `transition-all` — enumerar propiedades explícitas
+- `touch-action: manipulation` en botones y filas clicables
+- `prefers-reduced-motion` respetar con `motion-safe:` o `@media (prefers-reduced-motion: reduce)`
+- Headers de sub-páginas: `bg-card border-b-2 border-primary` (patrón fijo)
+- Formularios: `<label htmlFor>` vinculado al `id` del input
+- Errores de formulario: `role="alert"` en el `<p>` de error
+- Submit en progreso: spinner `<Loader2 animate-spin>` + texto "Guardando…"
 
 ## Lógica de creación de planes
 - Campo `start_date` (date input) en `PlanForm` — solo visible al crear (cuando `!initialValues`)

@@ -464,6 +464,37 @@ La DB está en **versión 7**. Migraciones notables:
 
 ---
 
+## 19. ACCESIBILIDAD Y DIRECTRICES DE UI
+
+Implementadas según Vercel Web Interface Guidelines (2026-03-11):
+
+### 19.1 Reglas de accesibilidad obligatorias
+- **Botones icon-only**: siempre `aria-label` descriptivo
+- **Iconos decorativos**: siempre `aria-hidden="true"`
+- **Lightbox / diálogos**: `role="dialog"`, `aria-modal="true"`, `aria-label`, handler de Escape
+- **TrafficLight**: `role="img"` + `aria-label` con el estado en texto
+- **Tabs**: contenedor con `role="tablist"`, cada tab con `role="tab"` + `aria-selected`
+- **Formularios**: `<label htmlFor>` vinculado al `id` del input; errores con `role="alert"`
+
+### 19.2 CSS y rendimiento
+- `transition-all` está prohibido — enumerar propiedades explícitas
+- `touch-action: manipulation` en todos los botones y filas interactivas
+- `prefers-reduced-motion`: respetar con `@media (prefers-reduced-motion: reduce)` o `motion-safe:` modifier
+- `font-variant-numeric: tabular-nums` en datos numéricos (`.gmao-mono`, `.gmao-stat-num`)
+- `text-wrap: balance` en headings h1–h6
+
+### 19.3 Tokens de diseño
+- No usar colores Tailwind crudos (`bg-gray-900`, `bg-red-600`) en páginas — usar tokens: `bg-destructive`, `text-foreground`, `bg-background`, etc.
+- Header de sub-páginas: `bg-card border-b-2 border-primary` (naranja)
+- Skip link: primer elemento del DOM para usuarios de teclado
+
+### 19.4 Formularios
+- Submit con estado de carga: spinner `<Loader2 animate-spin>` + texto "Guardando…"
+- `autoComplete="name"` en inputs de nombre de persona
+- `autoComplete="off"` en inputs de fecha
+
+---
+
 ## 18. RESTRICCIONES DE EJECUCIÓN
 
 - Responde con código + 1 línea de confirmación. Sin explicaciones largas.

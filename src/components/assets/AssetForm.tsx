@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { Loader2 } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -186,7 +187,11 @@ export function AssetForm({
         disabled={isSubmitting || isImageLoading}
         className="gmao-btn-primary"
       >
-        {isImageLoading ? 'Procesando imagen...' : isSubmitting ? 'Guardando...' : submitLabel}
+        {isImageLoading
+          ? <><Loader2 className="w-4 h-4 animate-spin inline mr-1.5" aria-hidden="true" />Procesando imagen…</>
+          : isSubmitting
+            ? <><Loader2 className="w-4 h-4 animate-spin inline mr-1.5" aria-hidden="true" />Guardando…</>
+            : submitLabel}
       </button>
     </form>
   )

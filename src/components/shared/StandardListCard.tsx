@@ -26,24 +26,26 @@ export function StandardListCard({
     <button
       type="button"
       onClick={onClick}
+      style={{ touchAction: 'manipulation' }}
       className={cn(
-        'w-full flex items-center p-4 bg-white border border-gray-100 rounded-xl mb-3 shadow-sm text-left',
+        'w-full flex items-center p-4 bg-white border border-border rounded-xl mb-3 shadow-sm text-left',
+        'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
         className
       )}
     >
       <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0', iconBgColor)}>
-        <Icon className={cn('w-5 h-5', iconColor)} />
+        <Icon className={cn('w-5 h-5', iconColor)} aria-hidden="true" />
       </div>
       <div className="flex-1 ml-3 min-w-0">
-        <p className="font-semibold text-sm text-gray-900 truncate">{title}</p>
-        {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+        <p className="font-semibold text-sm text-foreground truncate">{title}</p>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
       </div>
       {badge !== undefined && (
-        <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex-shrink-0 mx-2">
+        <span className="text-xs font-medium bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full flex-shrink-0 mx-2">
           {badge}
         </span>
       )}
-      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+      <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
     </button>
   )
 }

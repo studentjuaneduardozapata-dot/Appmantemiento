@@ -64,21 +64,25 @@ export function ImagePicker({ value, onChange, onClear, onLoadingChange }: Image
           {previewSrc ? (
             <img
               src={previewSrc}
-              alt="Vista previa"
+              alt="Vista previa de la imagen seleccionada"
+              width={128}
+              height={128}
               className="w-32 h-32 object-cover rounded-lg border border-border"
             />
           ) : (
             <div className="w-32 h-32 rounded-lg border border-border bg-muted flex items-center justify-center">
-              <Camera className="w-8 h-8 text-muted-foreground" />
-              <span className="sr-only">Imagen guardada</span>
+              <Camera className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
+              <span className="sr-only">Imagen guardada localmente</span>
             </div>
           )}
           <button
             type="button"
             onClick={handleClear}
-            className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5"
+            aria-label="Quitar imagen"
+            style={{ touchAction: 'manipulation' }}
+            className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       ) : (
@@ -88,19 +92,23 @@ export function ImagePicker({ value, onChange, onClear, onLoadingChange }: Image
             type="button"
             disabled={isCompressing}
             onClick={() => cameraInputRef.current?.click()}
-            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+            aria-label={isCompressing ? 'Procesando imagen\u2026' : 'Tomar foto con c\u00e1mara'}
+            style={{ touchAction: 'manipulation' }}
+            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
-            <Camera className="w-6 h-6 mb-1" />
-            <span className="text-xs">{isCompressing ? 'Procesando...' : 'Cámara'}</span>
+            <Camera className="w-6 h-6 mb-1" aria-hidden="true" />
+            <span className="text-xs">{isCompressing ? 'Procesando\u2026' : 'C\u00e1mara'}</span>
           </button>
           <button
             type="button"
             disabled={isCompressing}
             onClick={() => galleryInputRef.current?.click()}
-            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+            aria-label="Seleccionar imagen de galería"
+            style={{ touchAction: 'manipulation' }}
+            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
-            <ImageIcon className="w-6 h-6 mb-1" />
-            <span className="text-xs">Galería</span>
+            <ImageIcon className="w-6 h-6 mb-1" aria-hidden="true" />
+            <span className="text-xs">Galer\u00eda</span>
           </button>
         </div>
       )}

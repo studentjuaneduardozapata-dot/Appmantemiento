@@ -98,22 +98,25 @@ export default function PreventivePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-card border-b-2 border-primary px-4 py-3 flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1 -ml-1 text-muted-foreground hover:text-foreground"
+          aria-label="Volver"
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 -ml-2 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
         </button>
-        <h1 className="flex-1 text-base font-semibold text-foreground">Planes Preventivos</h1>
+        <h1 className="flex-1 text-base font-semibold font-display text-foreground">Planes Preventivos</h1>
         <button
           type="button"
           onClick={() => navigate('/schedule/new-plan')}
-          className="p-1.5 text-muted-foreground hover:text-primary"
-          title="Nuevo plan"
+          aria-label="Nuevo plan de mantenimiento"
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-5 h-5" aria-hidden="true" />
         </button>
       </div>
 
@@ -218,10 +221,11 @@ export default function PreventivePage() {
                                 <button
                                   type="button"
                                   onClick={() => navigate(`/schedule/plan/${plan.id}/edit`)}
-                                  className="p-1.5 text-muted-foreground hover:text-primary"
-                                  title="Editar"
+                                  aria-label={`Editar plan ${plan.title}`}
+                                  style={{ touchAction: 'manipulation' }}
+                                  className="p-2 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
                                 >
-                                  <Edit2 className="w-4 h-4" />
+                                  <Edit2 className="w-4 h-4" aria-hidden="true" />
                                 </button>
                                 <button
                                   type="button"
@@ -229,10 +233,11 @@ export default function PreventivePage() {
                                     setDeleteId(plan.id)
                                     setDeleteName(plan.title)
                                   }}
-                                  className="p-1.5 text-muted-foreground hover:text-destructive"
-                                  title="Eliminar"
+                                  aria-label={`Eliminar plan ${plan.title}`}
+                                  style={{ touchAction: 'manipulation' }}
+                                  className="p-2 text-muted-foreground hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none rounded-md"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-4 h-4" aria-hidden="true" />
                                 </button>
                               </div>
                             </div>

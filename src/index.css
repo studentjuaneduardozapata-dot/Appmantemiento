@@ -95,6 +95,7 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Syne', system-ui, sans-serif;
     letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 }
 
@@ -135,20 +136,29 @@ html, body {
     @apply w-full px-3 py-2.5 text-sm border border-border rounded-md bg-white text-foreground
            placeholder:text-muted-foreground
            focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-primary
-           disabled:opacity-50 disabled:cursor-not-allowed transition-all;
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    transition-property: border-color, box-shadow, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
   }
 
   .gmao-input-sm {
     @apply px-2.5 py-1.5 text-xs border border-border rounded-md bg-white text-foreground
            placeholder:text-muted-foreground
            focus:outline-none focus:ring-1 focus:ring-orange-400/30 focus:border-primary
-           disabled:opacity-50 transition-all;
+           disabled:opacity-50;
+    transition-property: border-color, box-shadow, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
   }
 
   .gmao-select {
     @apply w-full px-3 py-2.5 text-sm border border-border rounded-md bg-white text-foreground
            focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-primary
-           disabled:opacity-50 disabled:cursor-not-allowed transition-all;
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    transition-property: border-color, box-shadow, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
   }
 
   /* ── Labels ── */
@@ -159,35 +169,52 @@ html, body {
 
   .gmao-error {
     @apply text-xs text-destructive mt-1;
+    /* role="alert" must be set in JSX; this comment serves as reminder */
   }
 
   /* ── Buttons ── */
   .gmao-btn-primary {
     @apply w-full py-2.5 bg-primary text-white text-sm font-semibold rounded-md
-           disabled:opacity-50 disabled:cursor-not-allowed transition-all
+           disabled:opacity-50 disabled:cursor-not-allowed
            active:scale-[0.98];
     font-family: 'Syne', sans-serif;
     letter-spacing: 0.01em;
+    touch-action: manipulation;
+    transition-property: opacity, transform, filter;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
     &:not(:disabled):hover { filter: brightness(0.93); }
   }
 
   .gmao-btn-destructive {
     @apply w-full py-2.5 bg-destructive text-white text-sm font-semibold rounded-md
-           disabled:opacity-50 disabled:cursor-not-allowed transition-all
+           disabled:opacity-50 disabled:cursor-not-allowed
            active:scale-[0.98];
     font-family: 'Syne', sans-serif;
+    touch-action: manipulation;
+    transition-property: opacity, transform, filter;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
     &:not(:disabled):hover { filter: brightness(0.92); }
   }
 
   .gmao-btn-secondary {
-    @apply px-4 py-2 text-sm font-medium text-foreground bg-secondary border border-border rounded-md transition-colors;
+    @apply px-4 py-2 text-sm font-medium text-foreground bg-secondary border border-border rounded-md;
+    touch-action: manipulation;
+    transition-property: background-color, color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
     &:hover { @apply bg-accent; }
   }
 
   /* ── List rows ── */
   .gmao-list-row {
     @apply w-full text-left flex items-center gap-3 px-4 py-3.5
-           border-b border-border last:border-0 transition-colors bg-white;
+           border-b border-border last:border-0 bg-white;
+    touch-action: manipulation;
+    transition-property: background-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
     &:hover { background-color: var(--accent); }
   }
 
@@ -206,9 +233,13 @@ html, body {
   /* ── Tabs ── */
   .gmao-tab {
     @apply flex-1 min-w-[80px] py-2.5 text-xs font-semibold whitespace-nowrap
-           border-b-2 transition-colors;
+           border-b-2;
     font-family: 'Syne', sans-serif;
     letter-spacing: 0.03em;
+    touch-action: manipulation;
+    transition-property: color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
   }
 
   .gmao-tab-active {
@@ -259,17 +290,28 @@ html, body {
   /* ── Mono data display ── */
   .gmao-mono {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
     @apply text-xs;
   }
 
   /* ── Stat number (big KPI display) ── */
   .gmao-stat-num {
     font-family: 'Syne', sans-serif;
+    font-variant-numeric: tabular-nums;
     @apply text-3xl font-bold leading-none tracking-tight;
   }
 
   /* ── Display heading ── */
   .font-display {
     font-family: 'Syne', sans-serif;
+  }
+}
+
+/* ── Reduced motion — honor OS accessibility preference ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import { closeIncident } from '@/hooks/useIncidents'
@@ -58,8 +58,8 @@ export function ResolveIncidentDialog({
               Cerrar falla
             </Dialog.Title>
             <Dialog.Close asChild>
-              <button type="button" className="p-1 text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
+              <button type="button" aria-label="Cerrar" className="p-1 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md">
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </Dialog.Close>
           </div>
@@ -67,11 +67,12 @@ export function ResolveIncidentDialog({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Responsable */}
             <div>
-              <label className="gmao-label">
+              <label htmlFor="rid-resolved-by" className="gmao-label">
                 Responsable <span className="text-destructive">*</span>
               </label>
               {users && users.length > 0 ? (
                 <select
+                  id="rid-resolved-by"
                   value={resolvedBy}
                   onChange={(e) => setResolvedBy(e.target.value)}
                   required
@@ -86,10 +87,12 @@ export function ResolveIncidentDialog({
                 </select>
               ) : (
                 <input
+                  id="rid-resolved-by"
                   type="text"
                   value={resolvedBy}
                   onChange={(e) => setResolvedBy(e.target.value)}
                   required
+                  autoComplete="name"
                   placeholder="Nombre del responsable"
                   className="gmao-input"
                 />
@@ -98,8 +101,9 @@ export function ResolveIncidentDialog({
 
             {/* Tiempo de resolución */}
             <div>
-              <label className="gmao-label">Tiempo de resolución</label>
+              <label htmlFor="rid-resolution-time" className="gmao-label">Tiempo de resolución</label>
               <input
+                id="rid-resolution-time"
                 type="text"
                 value={resolutionTime}
                 onChange={(e) => setResolutionTime(e.target.value)}
@@ -110,8 +114,9 @@ export function ResolveIncidentDialog({
 
             {/* Notas */}
             <div>
-              <label className="gmao-label">Notas (opcional)</label>
+              <label htmlFor="rid-notes" className="gmao-label">Notas (opcional)</label>
               <textarea
+                id="rid-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
@@ -134,9 +139,11 @@ export function ResolveIncidentDialog({
             <button
               type="submit"
               disabled={saving || !resolvedBy}
-              className="w-full py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="w-full py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
-              {saving ? 'Guardando...' : 'Cerrar falla'}
+              {saving
+                ? <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />Guardando…</>
+                : 'Cerrar falla'}
             </button>
           </form>
         </Dialog.Content>

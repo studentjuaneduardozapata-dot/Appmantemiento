@@ -60,30 +60,36 @@ export default function IncidentDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-card border-b-2 border-primary px-4 py-3 flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1 -ml-1 text-muted-foreground hover:text-foreground"
+          aria-label="Volver"
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 -ml-2 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
         </button>
-        <h1 className="flex-1 text-base font-semibold text-foreground truncate">
+        <h1 className="flex-1 text-base font-semibold font-display text-foreground truncate">
           {asset?.name ?? 'Falla'}
         </h1>
         <button
           type="button"
           onClick={() => setEditMode(!editMode)}
-          className="p-1.5 text-muted-foreground hover:text-primary"
+          aria-label={editMode ? 'Cancelar edición' : 'Editar falla'}
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
         >
-          <Edit2 className="w-4 h-4" />
+          <Edit2 className="w-4 h-4" aria-hidden="true" />
         </button>
         <button
           type="button"
           onClick={() => setDeleteOpen(true)}
-          className="p-1.5 text-muted-foreground hover:text-destructive"
+          aria-label="Eliminar falla"
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 text-muted-foreground hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none rounded-md"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 

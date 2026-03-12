@@ -108,33 +108,39 @@ export default function AssetDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-card border-b-2 border-primary px-4 py-3 flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="p-1 -ml-1 text-muted-foreground hover:text-foreground"
+          aria-label="Volver"
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 -ml-2 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
         </button>
         <div className="flex-1 min-w-0 flex items-center gap-2">
           <TrafficLight status={light} />
-          <h1 className="text-base font-semibold text-foreground truncate">
+          <h1 className="text-base font-semibold font-display text-foreground truncate">
             {asset.name}
           </h1>
         </div>
         <button
           type="button"
           onClick={() => navigate(`/assets/${id}/edit`)}
-          className="p-1.5 text-muted-foreground hover:text-primary"
+          aria-label="Editar activo"
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
         >
-          <Edit2 className="w-4 h-4" />
+          <Edit2 className="w-4 h-4" aria-hidden="true" />
         </button>
         <button
           type="button"
           onClick={() => setDeleteOpen(true)}
-          className="p-1.5 text-muted-foreground hover:text-destructive"
+          aria-label="Eliminar activo"
+          style={{ touchAction: 'manipulation' }}
+          className="p-2 text-muted-foreground hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none rounded-md"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 
@@ -155,9 +161,23 @@ export default function AssetDetailPage() {
 
           {imgOpen && (
             <div
+              role="dialog"
+              aria-label="Imagen del activo"
+              aria-modal="true"
+              tabIndex={-1}
               className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
               onClick={() => setImgOpen(false)}
+              onKeyDown={(e) => e.key === 'Escape' && setImgOpen(false)}
             >
+              <button
+                type="button"
+                onClick={() => setImgOpen(false)}
+                aria-label="Cerrar imagen"
+                style={{ touchAction: 'manipulation' }}
+                className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              >
+                ✕
+              </button>
               <img
                 src={imageSrc}
                 alt={asset.name}
@@ -208,9 +228,11 @@ export default function AssetDetailPage() {
         <button
           type="button"
           onClick={() => setQrOpen(true)}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-card border border-border rounded-lg text-sm font-medium text-primary hover:bg-accent/50"
+          aria-label="Ver código QR del activo"
+          style={{ touchAction: 'manipulation' }}
+          className="w-full flex items-center justify-center gap-2 py-3 bg-card border border-border rounded-lg text-sm font-medium text-primary hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
         >
-          <QrCode className="w-4 h-4" />
+          <QrCode className="w-4 h-4" aria-hidden="true" />
           Ver código QR
         </button>
       </div>
@@ -261,7 +283,7 @@ export default function AssetDetailPage() {
                     <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium', pt.className)}>
                       {pt.label}
                     </span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                   </div>
                 </button>
               )

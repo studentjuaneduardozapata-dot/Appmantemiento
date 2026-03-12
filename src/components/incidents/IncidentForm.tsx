@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
-
+import { Loader2 } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format } from 'date-fns'
@@ -239,7 +239,11 @@ export function IncidentForm({ initialValues, onSubmit, isSubmitting }: Incident
         disabled={isSubmitting || isImageLoading}
         className="gmao-btn-destructive"
       >
-        {isImageLoading ? 'Procesando imagen...' : isSubmitting ? 'Guardando...' : 'Reportar falla'}
+        {isImageLoading
+          ? <><Loader2 className="w-4 h-4 animate-spin inline mr-1.5" aria-hidden="true" />Procesando imagen…</>
+          : isSubmitting
+            ? <><Loader2 className="w-4 h-4 animate-spin inline mr-1.5" aria-hidden="true" />Guardando…</>
+            : 'Reportar falla'}
       </button>
     </form>
   )
