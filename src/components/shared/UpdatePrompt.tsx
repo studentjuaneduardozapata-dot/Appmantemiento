@@ -20,7 +20,11 @@ export function UpdatePrompt() {
       duration: Infinity,
       action: {
         label: 'Actualizar',
-        onClick: () => updateServiceWorker(true),
+        // updateServiceWorker envía SKIP_WAITING al SW y recarga.
+        // Si el canal cierra antes de recibir respuesta (comportamiento normal de
+        // Workbox: el reload mata el canal antes de que el SW responda), el .catch
+        // fuerza reload de todas formas — evita que el usuario quede con versión vieja.
+        onClick: () => updateServiceWorker(true).catch(() => window.location.reload()),
       },
     })
   }, [needRefresh, updateServiceWorker])

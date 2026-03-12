@@ -88,7 +88,7 @@ export function DayDetailModal({ date, onClose, incidents = [] }: DayDetailModal
 
   return (
     <Sheet open={!!date} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" aria-label={`Detalle del día ${title}`}>
+      <SheetContent side="right" aria-label={`Detalle del día ${title}`} aria-describedby={undefined}>
         {/* Header */}
         <SheetHeader side="right">
           <div className="flex items-center justify-between">

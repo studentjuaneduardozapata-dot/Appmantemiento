@@ -48,6 +48,12 @@ const TABLES_WITH_UPDATED_AT_WINS = new Set<SyncTable>([
   'users', 'assets', 'incidents', 'maintenance_plans', 'maintenance_tasks', 'task_steps',
 ])
 
+// Tablas que tienen campo _synced en Dexie — marcar como true al recibir desde Supabase
+const TABLES_WITH_SYNCED_FIELD = new Set<SyncTable>([
+  'users', 'assets', 'incidents', 'maintenance_plans', 'maintenance_tasks',
+  'maintenance_logs', 'task_steps',
+])
+
 async function getLastSyncTimestamp(): Promise<string | null> {
   const meta = await db.sync_meta.get('last_sync_timestamp')
   return meta?.value ?? null
@@ -103,10 +109,18 @@ async function pullTable(table: SyncTable, since: string | null): Promise<number
         return (remote.updated_at as string) > (local.updated_at as string)
       })
       if (toUpsert.length > 0) {
-        await dexieTable.bulkPut(toUpsert)
+        // Marcar como _synced: true — vienen de Supabase, están sincronizados
+        const marked = TABLES_WITH_SYNCED_FIELD.has(table)
+          ? toUpsert.map(r => ({ ...r, _synced: true }))
+          : toUpsert
+        await dexieTable.bulkPut(marked)
       }
     } else {
-      await dexieTable.bulkPut(data)
+      // Marcar como _synced: true para tablas que tienen el campo (ej. maintenance_logs)
+      const dataToStore = TABLES_WITH_SYNCED_FIELD.has(table)
+        ? (data as Array<Record<string, unknown>>).map(r => ({ ...r, _synced: true }))
+        : data
+      await dexieTable.bulkPut(dataToStore)
     }
   }
 

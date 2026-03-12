@@ -58,7 +58,7 @@ function DetailSheet({ entry, onClose }: { entry: Entry | null; onClose: () => v
 
   return (
     <Sheet open={!!entry} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" aria-label="Detalle del registro">
+      <SheetContent side="right" aria-label="Detalle del registro" aria-describedby={undefined}>
         <SheetHeader side="right">
           <div className="flex items-center justify-between">
             <SheetTitle>

@@ -11,6 +11,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetCloseButton,
   SheetBody,
   SheetFooter,
@@ -74,7 +75,7 @@ export function CompleteTaskDialog({
             <SheetTitle>Completar tarea</SheetTitle>
             <SheetCloseButton label="Cerrar" />
           </div>
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
+          <SheetDescription className="mt-1 line-clamp-2">{task.description}</SheetDescription>
         </SheetHeader>
 
         {/* Form body */}
