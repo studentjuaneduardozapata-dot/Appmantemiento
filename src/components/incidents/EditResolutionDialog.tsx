@@ -3,25 +3,28 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { X, Loader2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
-import { closeIncident } from '@/hooks/useIncidents'
+import { updateIncident } from '@/hooks/useIncidents'
 
-interface ResolveIncidentDialogProps {
+interface EditResolutionDialogProps {
   open: boolean
   onClose: () => void
   incidentId: string
-  assetId: string
+  initialResolvedBy: string
+  initialResolutionTime: string
+  initialNotes: string
 }
 
-export function ResolveIncidentDialog({
+export function EditResolutionDialog({
   open,
   onClose,
   incidentId,
-  assetId,
-}: ResolveIncidentDialogProps) {
-  const [resolvedBy, setResolvedBy] = useState('')
-  const [resolutionTime, setResolutionTime] = useState('')
-  const [notes, setNotes] = useState('')
-  const [restoreAsset, setRestoreAsset] = useState(true)
+  initialResolvedBy,
+  initialResolutionTime,
+  initialNotes,
+}: EditResolutionDialogProps) {
+  const [resolvedBy, setResolvedBy] = useState(initialResolvedBy)
+  const [resolutionTime, setResolutionTime] = useState(initialResolutionTime)
+  const [notes, setNotes] = useState(initialNotes)
   const [saving, setSaving] = useState(false)
 
   const users = useLiveQuery(() => db.users.filter((u) => !u.deleted_at).toArray())
@@ -31,18 +34,12 @@ export function ResolveIncidentDialog({
     if (!resolvedBy) return
     setSaving(true)
     try {
-      await closeIncident(incidentId, {
+      await updateIncident(incidentId, {
         resolved_by: resolvedBy,
-        resolution_time: resolutionTime,
+        resolution_time: resolutionTime || undefined,
         notes: notes || undefined,
-        restore_asset: restoreAsset,
-        asset_id: assetId,
       })
       onClose()
-      setResolvedBy('')
-      setResolutionTime('')
-      setNotes('')
-      setRestoreAsset(true)
     } finally {
       setSaving(false)
     }
@@ -55,13 +52,17 @@ export function ResolveIncidentDialog({
         <Dialog.Content className="fixed z-50 bg-card rounded-xl shadow-xl p-5 w-[calc(100%-2rem)] max-w-sm left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="font-semibold text-foreground">
-              Cerrar falla
+              Editar resolución
             </Dialog.Title>
             <Dialog.Description className="sr-only">
-              Formulario para registrar la resolución y cerrar la falla.
+              Formulario para editar los datos de resolución de la falla cerrada.
             </Dialog.Description>
             <Dialog.Close asChild>
-              <button type="button" aria-label="Cerrar" className="p-1 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md">
+              <button
+                type="button"
+                aria-label="Cerrar"
+                className="p-1 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
+              >
                 <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </Dialog.Close>
@@ -70,12 +71,12 @@ export function ResolveIncidentDialog({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Responsable */}
             <div>
-              <label htmlFor="rid-resolved-by" className="gmao-label">
+              <label htmlFor="erid-resolved-by" className="gmao-label">
                 Responsable <span className="text-destructive">*</span>
               </label>
               {users && users.length > 0 ? (
                 <select
-                  id="rid-resolved-by"
+                  id="erid-resolved-by"
                   value={resolvedBy}
                   onChange={(e) => setResolvedBy(e.target.value)}
                   required
@@ -90,7 +91,7 @@ export function ResolveIncidentDialog({
                 </select>
               ) : (
                 <input
-                  id="rid-resolved-by"
+                  id="erid-resolved-by"
                   type="text"
                   value={resolvedBy}
                   onChange={(e) => setResolvedBy(e.target.value)}
@@ -104,9 +105,11 @@ export function ResolveIncidentDialog({
 
             {/* Tiempo de resolución */}
             <div>
-              <label htmlFor="rid-resolution-time" className="gmao-label">Tiempo de resolución</label>
+              <label htmlFor="erid-resolution-time" className="gmao-label">
+                Tiempo de resolución
+              </label>
               <input
-                id="rid-resolution-time"
+                id="erid-resolution-time"
                 type="text"
                 value={resolutionTime}
                 onChange={(e) => setResolutionTime(e.target.value)}
@@ -117,9 +120,9 @@ export function ResolveIncidentDialog({
 
             {/* Notas */}
             <div>
-              <label htmlFor="rid-notes" className="gmao-label">Notas (opcional)</label>
+              <label htmlFor="erid-notes" className="gmao-label">Notas (opcional)</label>
               <textarea
-                id="rid-notes"
+                id="erid-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
@@ -128,25 +131,15 @@ export function ResolveIncidentDialog({
               />
             </div>
 
-            {/* Restaurar estado activo */}
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={restoreAsset}
-                onChange={(e) => setRestoreAsset(e.target.checked)}
-                className="w-4 h-4 rounded accent-green-600"
-              />
-              <span className="text-sm text-foreground">Restaurar activo a operativo</span>
-            </label>
-
             <button
               type="submit"
               disabled={saving || !resolvedBy}
-              className="w-full py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-full disabled:opacity-50 flex items-center justify-center gap-1.5"
+              style={{ touchAction: 'manipulation' }}
             >
               {saving
                 ? <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />Guardando…</>
-                : 'Cerrar falla'}
+                : 'Guardar cambios'}
             </button>
           </form>
         </Dialog.Content>

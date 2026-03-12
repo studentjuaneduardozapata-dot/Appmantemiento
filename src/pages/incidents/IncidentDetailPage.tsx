@@ -7,6 +7,7 @@ import type { IncidentStatus } from '@/lib/db'
 import { useIncident, updateIncident, softDeleteIncident } from '@/hooks/useIncidents'
 import { IncidentDetail } from '@/components/incidents/IncidentDetail'
 import { IncidentForm } from '@/components/incidents/IncidentForm'
+import { EditResolutionDialog } from '@/components/incidents/EditResolutionDialog'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import type { IncidentFormData } from '@/types'
 import { format } from 'date-fns'
@@ -15,6 +16,7 @@ export default function IncidentDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [editMode, setEditMode] = useState(false)
+  const [editResolutionOpen, setEditResolutionOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -60,7 +62,7 @@ export default function IncidentDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-10 bg-card border-b-2 border-primary px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center gap-3" style={{ boxShadow: 'var(--shadow-card)' }}>
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -75,8 +77,14 @@ export default function IncidentDetailPage() {
         </h1>
         <button
           type="button"
-          onClick={() => setEditMode(!editMode)}
-          aria-label={editMode ? 'Cancelar edición' : 'Editar falla'}
+          onClick={() => {
+            if (incident.status === 'cerrada') {
+              setEditResolutionOpen(true)
+            } else {
+              setEditMode(!editMode)
+            }
+          }}
+          aria-label={editMode ? 'Cancelar edición' : incident.status === 'cerrada' ? 'Editar resolución' : 'Editar falla'}
           style={{ touchAction: 'manipulation' }}
           className="p-2 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md"
         >
@@ -124,6 +132,15 @@ export default function IncidentDetailPage() {
         confirmVariant="danger"
         onConfirm={handleDelete}
         onCancel={() => setDeleteOpen(false)}
+      />
+
+      <EditResolutionDialog
+        open={editResolutionOpen}
+        onClose={() => setEditResolutionOpen(false)}
+        incidentId={incident.id}
+        initialResolvedBy={incident.resolved_by ?? ''}
+        initialResolutionTime={incident.resolution_time ?? ''}
+        initialNotes={incident.notes ?? ''}
       />
     </div>
   )

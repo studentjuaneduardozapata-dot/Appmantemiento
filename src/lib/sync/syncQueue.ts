@@ -267,11 +267,18 @@ async function pushToSupabase(
     return
   }
 
-  // Excluir campos internos de Dexie que no existen en Supabase
+  // Excluir campos internos de Dexie que no existen en Supabase.
+  // 'incidents.notes': excluir hasta que se ejecute la migración Supabase:
+  //   ALTER TABLE incidents ADD COLUMN notes text;
+  // Una vez hecha la migración, eliminar la entrada del objeto TABLE_EXTRA_EXCLUSIONS.
   const DEXIE_ONLY_FIELDS = new Set(['autoId', 'completed_step_ids'])
+  const TABLE_EXTRA_EXCLUSIONS: Record<string, Set<string>> = {
+    incidents: new Set(['notes']),
+  }
+  const extraExclusions = TABLE_EXTRA_EXCLUSIONS[table] ?? new Set()
   const clean = Object.fromEntries(
     Object.entries(payload)
-      .filter(([k]) => !k.startsWith('_') && !DEXIE_ONLY_FIELDS.has(k))
+      .filter(([k]) => !k.startsWith('_') && !DEXIE_ONLY_FIELDS.has(k) && !extraExclusions.has(k))
       .map(([k, v]) => [k, v === '' ? null : v])
   )
 
