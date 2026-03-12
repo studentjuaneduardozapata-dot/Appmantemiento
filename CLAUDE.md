@@ -85,6 +85,7 @@ Campo `completed_step_ids` en `maintenance_logs` — solo Dexie, no en Supabase.
 /scan           → ScanPage
 /admin          → AdminPage
 ```
+*SummaryPage.tsx eliminado — ruta /summary no existe.*
 
 ## Comandos frecuentes
 ```bash

@@ -38,6 +38,7 @@ export function IncidentDetail({
   const [selectedStatus, setSelectedStatus] = useState<IncidentStatus>(incident.status)
   const [saving, setSaving] = useState(false)
   const [resolveOpen, setResolveOpen] = useState(false)
+  const [imgOpen, setImgOpen] = useState(false)
   const photoSrc = useObjectUrl(incident.photo_url)
 
   const statusChanged = selectedStatus !== incident.status
@@ -93,6 +94,9 @@ export function IncidentDetail({
         {incident.resolution_time && (
           <DetailRow label="Tiempo de resolución" value={incident.resolution_time} />
         )}
+        {incident.notes && (
+          <DetailRow label="Notas de resolución" value={incident.notes} />
+        )}
         {incident.closed_at && !isNaN(new Date(incident.closed_at).getTime()) && (
           <DetailRow
             label="Cerrada el"
@@ -103,15 +107,51 @@ export function IncidentDetail({
         )}
       </div>
 
-      {/* Foto */}
+      {/* Foto — clicable para lightbox */}
       {photoSrc && (
-        <div className="bg-card rounded-lg border border-border overflow-hidden">
-          <img
-            src={photoSrc}
-            alt="Evidencia"
-            className="w-full max-h-48 object-cover"
-          />
-        </div>
+        <>
+          <button
+            type="button"
+            onClick={() => setImgOpen(true)}
+            aria-label="Ampliar imagen de evidencia"
+            style={{ touchAction: 'manipulation' }}
+            className="bg-card rounded-lg border border-border overflow-hidden w-full block focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          >
+            <img
+              src={photoSrc}
+              alt="Evidencia"
+              className="w-full max-h-48 object-cover"
+            />
+          </button>
+
+          {imgOpen && (
+            <div
+              role="dialog"
+              aria-label="Imagen de evidencia"
+              aria-modal="true"
+              tabIndex={-1}
+              className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+              onClick={() => setImgOpen(false)}
+              onKeyDown={(e) => e.key === 'Escape' && setImgOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setImgOpen(false)}
+                aria-label="Cerrar imagen"
+                style={{ touchAction: 'manipulation' }}
+                className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              >
+                ✕
+              </button>
+              <img
+                src={photoSrc}
+                alt="Evidencia"
+                className="max-w-full max-h-full object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* Cambio de estado */}

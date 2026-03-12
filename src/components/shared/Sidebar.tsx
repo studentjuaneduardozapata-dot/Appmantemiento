@@ -4,7 +4,6 @@ import {
   Wrench,
   AlertTriangle,
   ClipboardList,
-  BarChart2,
   QrCode,
   Settings,
   RefreshCw,
@@ -31,7 +30,6 @@ const NAV_ITEMS = [
   { label: 'Activos',  path: '/assets',    icon: Wrench },
   { label: 'Fallas',   path: '/incidents', icon: AlertTriangle },
   { label: 'Historial', path: '/history',  icon: ClipboardList },
-  { label: 'Resumen',  path: '/summary',   icon: BarChart2 },
   { label: 'Escanear', path: '/scan',      icon: QrCode },
 ]
 

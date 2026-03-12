@@ -74,6 +74,7 @@ export interface Incident {
   status: IncidentStatus
   resolution_time?: string
   resolved_by?: string
+  notes?: string
   reported_at: string
   closed_at?: string
   deleted_at?: string

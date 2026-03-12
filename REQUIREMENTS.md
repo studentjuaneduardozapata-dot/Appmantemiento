@@ -96,7 +96,6 @@ src/
 │   ├── SchedulePage.tsx
 │   ├── IncidentsPage.tsx
 │   ├── HistoryPage.tsx
-│   ├── SummaryPage.tsx
 │   ├── ScanPage.tsx
 │   ├── AdminPage.tsx
 │   ├── assets/               # AssetNewPage, AssetDetailPage, AssetEditPage, AreaDetailPage
@@ -243,6 +242,7 @@ Flujo ultra-rápido (objetivo: <30 segundos):
 - `status`: `abierta` | `en_progreso` | `cerrada`
 - `resolution_time` — campo libre al cerrar ("2 horas 30 minutos")
 - `resolved_by` — nombre de quién resolvió
+- `notes` — notas/observaciones de resolución (opcional)
 - `closed_at` — timestamp al cerrar
 
 ---
@@ -394,6 +394,8 @@ Menú principal (bottom nav mobile, sidebar desktop):
 5. 📋 `/history` — Historial
 6. 📷 `/scan` — Escanear QR
 
+*Nota: La ruta `/summary` y `SummaryPage.tsx` fueron eliminados.*
+
 Rutas adicionales:
 - `/assets/new`, `/assets/:id`, `/assets/:id/edit`, `/assets/area/:id`
 - `/schedule/new-plan`, `/schedule/plan/:id`, `/schedule/plan/:id/edit`, `/schedule/preventive`
@@ -415,7 +417,7 @@ asset_categories (id uuid PK, name text NOT NULL, sort_order int, created_at tim
 
 assets (id uuid PK, name text NOT NULL, category_id uuid FK, area_id uuid FK, parent_asset_id uuid FK→self, image_url text, specs jsonb DEFAULT '[]', status text DEFAULT 'operativo', deleted_at timestamptz, created_at timestamptz, updated_at timestamptz)
 
-incidents (id uuid PK, asset_id uuid FK NOT NULL, type text NOT NULL, reported_by text DEFAULT '', description text, photo_url text, status text DEFAULT 'abierta', resolution_time text, reported_at timestamptz, closed_at timestamptz, deleted_at timestamptz, created_at timestamptz, updated_at timestamptz, resolved_by text)
+incidents (id uuid PK, asset_id uuid FK NOT NULL, type text NOT NULL, reported_by text DEFAULT '', description text, photo_url text, status text DEFAULT 'abierta', resolution_time text, notes text, reported_at timestamptz, closed_at timestamptz, deleted_at timestamptz, created_at timestamptz, updated_at timestamptz, resolved_by text)
 
 maintenance_plans (id uuid PK, title text NOT NULL, description text, asset_ids jsonb DEFAULT '[]', type text DEFAULT 'preventivo', deleted_at timestamptz, created_at timestamptz, updated_at timestamptz)
 

@@ -112,6 +112,7 @@ export async function closeIncident(
       status: 'cerrada' as IncidentStatus,
       resolution_time: data.resolution_time,
       resolved_by: data.resolved_by,
+      notes: data.notes,
       closed_at: now,
       updated_at: now,
       _synced: false,
