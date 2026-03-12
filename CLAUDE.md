@@ -8,6 +8,17 @@ Supabase v2 (Postgres + Storage + Realtime) | Vercel (vercel.json SPA rewrite)
 React Router v6 | react-hook-form + zod | date-fns v3 | sonner
 qrcode | html5-qrcode | lucide-react
 
+## Tema Visual (actualizado 2026-03-12)
+**FIELD MANUAL — Material Design 3, Light Mode**
+- Paleta: tonal verde agrícola (#2E6F1A primario), olivo-sage (secundario), ámbar (terciario/urgencia)
+- Tipografía: `Barlow Semi Condensed` (display/headings) + `Source Sans 3` (body) + `JetBrains Mono` (mono)
+- Navegación desktop: **Navigation Rail** (80px, `w-20`, fondo claro `surface-container-low`)
+- Navegación mobile: **Navigation Bar** (MD3, indicador tonal pill con `secondary-container`)
+- Layout offset desktop: `md:ml-20` (80px rail)
+- Headers de página: `bg-card border-b border-border` con sombra sutil (sin borde naranja)
+- Tokens MD3 en `src/index.css` (`:root` con `--md-*` vars + bridge a `--shadcn` tokens)
+- Clases de componentes: `gmao-btn-primary` = pill `rounded-full`, `gmao-card` = `rounded-xl`
+
 ## Regla absoluta de datos
 - LECTURAS: siempre `useLiveQuery(() => db.tabla...)` — nunca Supabase directo
 - MUTACIONES: escribe en Dexie con `_synced: false` → `enqueue()` en sync_queue
@@ -49,8 +60,10 @@ Campo `completed_step_ids` en `maintenance_logs` — solo Dexie, no en Supabase.
 - @src/types/index.ts — re-exporta tipos desde db.ts + tipos auxiliares UI
 - @src/lib/seedData.ts — datos iniciales (categorías, áreas)
 - @src/app/AppRouter.tsx — todas las rutas
-- @src/app/Layout.tsx — shell con skip link y offset md:ml-56 (P0 layout)
-- @src/index.css — design system global, prefers-reduced-motion, touch-action
+- @src/app/Layout.tsx — shell con skip link y offset md:ml-20 (Navigation Rail 80px)
+- @src/index.css — design system MD3, tokens, componentes gmao-*
+- @src/components/shared/Sidebar.tsx — Navigation Rail (MD3, 80px, fondo claro)
+- @src/components/shared/BottomNav.tsx — Navigation Bar (MD3, tonal pills)
 
 ## Rutas actuales
 ```
@@ -96,7 +109,7 @@ npm run lint         # linting
 - NO usar `transition-all` — enumerar propiedades explícitas
 - `touch-action: manipulation` en botones y filas clicables
 - `prefers-reduced-motion` respetar con `motion-safe:` o `@media (prefers-reduced-motion: reduce)`
-- Headers de sub-páginas: `bg-card border-b-2 border-primary` (patrón fijo)
+- Headers de sub-páginas: `bg-card border-b border-border` + sombra sutil (MD3 Top App Bar)
 - Formularios: `<label htmlFor>` vinculado al `id` del input
 - Errores de formulario: `role="alert"` en el `<p>` de error
 - Submit en progreso: spinner `<Loader2 animate-spin>` + texto "Guardando…"

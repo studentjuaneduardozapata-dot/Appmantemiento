@@ -12,7 +12,7 @@ export function PageHeader({ title, subtitle, action, syncStatus, className }: P
   return (
     <div
       className={cn(
-        'sticky top-0 z-10 bg-white border-b-2 border-primary px-4 py-3 flex items-center justify-between',
+        'sticky top-0 z-10 bg-background px-4 py-3 flex items-center justify-between',
         className
       )}
     >

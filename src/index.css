@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,75 +7,122 @@
 @layer base {
   :root {
     /* ═══════════════════════════════════════════════
-       FORGE — Industrial Precision Theme
-       Primary: Orange (#F97316) — Safety / Industrial
-       Sidebar: Deep Navy (#0F1623)
-       Background: Cool Blue-Gray (#ECEEF4)
+       FIELD MANUAL — Material Design 3, Light Mode
+       Agricultural tonal palette — warm greens & amber
+       Seed: #4E7C2F (agricultural green)
        ═══════════════════════════════════════════════ */
 
-    /* Core brand */
-    --bg-main:     #ECEEF4;
-    --bg-header:   #0F1623;
-    --text-main:   #0D1421;
-    --text-header: #BDC8DC;
-    --primary:     #5ea848;
+    /* MD3 Primary (deep agricultural green) */
+    --md-primary:                #2E6F1A;
+    --md-on-primary:             #FFFFFF;
+    --md-primary-container:      #ABED8D;
+    --md-on-primary-container:   #032100;
 
-    /* Surfaces */
-    --surface:     #FFFFFF;
-    --nav-inactive: #8294B0;
+    /* MD3 Secondary (olive-sage) */
+    --md-secondary:              #526349;
+    --md-on-secondary:           #FFFFFF;
+    --md-secondary-container:    #D5E8C7;
+    --md-on-secondary-container: #101F0A;
 
-    /* Shadow */
-    --shadow-card: 0 1px 3px 0 rgb(13 20 33 / 0.07), 0 1px 2px -1px rgb(13 20 33 / 0.05);
-    --shadow-md:   0 4px 16px 0 rgb(13 20 33 / 0.10);
-    --shadow-lg:   0 8px 32px 0 rgb(13 20 33 / 0.14);
+    /* MD3 Tertiary (amber — urgency, safety, warnings) */
+    --md-tertiary:               #B85C00;
+    --md-on-tertiary:            #FFFFFF;
+    --md-tertiary-container:     #FFD8B4;
+    --md-on-tertiary-container:  #3B1700;
 
-    /* ═══ Shadcn tokens ═══ */
-    --background:              var(--bg-main);
-    --foreground:              var(--text-main);
+    /* MD3 Error */
+    --md-error:                  #BA1A1A;
+    --md-on-error:               #FFFFFF;
+    --md-error-container:        #FFDAD6;
+    --md-on-error-container:     #410002;
 
-    --card:                    #FFFFFF;
-    --card-foreground:         var(--text-main);
+    /* MD3 Surfaces */
+    --md-background:                #F8FBF3;
+    --md-on-background:             #1A1E17;
+    --md-surface:                   #F8FBF3;
+    --md-on-surface:                #1A1E17;
+    --md-surface-variant:           #DDE5D4;
+    --md-on-surface-variant:        #424B3A;
+    --md-surface-container-lowest:  #FFFFFF;
+    --md-surface-container-low:     #F2F5EC;
+    --md-surface-container:         #ECEEE7;
+    --md-surface-container-high:    #E6E9E0;
+    --md-surface-container-highest: #E0E3DB;
 
-    --popover:                 #FFFFFF;
-    --popover-foreground:      var(--text-main);
+    /* MD3 Outline */
+    --md-outline:         #72796A;
+    --md-outline-variant: #C1C9B8;
 
-    --primary-foreground:      #FFFFFF;
+    /* MD3 Inverse */
+    --md-inverse-surface:    #2F3229;
+    --md-inverse-on-surface: #F0F3EA;
+    --md-inverse-primary:    #93D176;
 
-    --secondary:               #E6E9F2;
-    --secondary-foreground:    var(--text-main);
+    /* MD3 Shape tokens */
+    --md-shape-xs:   4px;
+    --md-shape-sm:   8px;
+    --md-shape-md:   12px;
+    --md-shape-lg:   16px;
+    --md-shape-xl:   28px;
+    --md-shape-full: 9999px;
 
-    --muted:                   #E2E5EF;
-    --muted-foreground:        #6B7A99;
+    /* ─── Shadcn / Tailwind token bridge ─── */
+    --background:             var(--md-background);
+    --foreground:             var(--md-on-background);
 
-    --accent:                  #ECEEF4;
-    --accent-foreground:       var(--text-main);
+    --card:                   var(--md-surface-container-lowest);
+    --card-foreground:        var(--md-on-surface);
 
-    --destructive:             #DC2626;
-    --destructive-foreground:  #FFFFFF;
+    --popover:                var(--md-surface-container-lowest);
+    --popover-foreground:     var(--md-on-surface);
 
-    --border:                  #D3D7E8;
-    --input:                   #FFFFFF;
-    --ring:                    #F97316;
+    --primary:                var(--md-primary);
+    --primary-foreground:     var(--md-on-primary);
 
-    --radius: 0.375rem;
+    --secondary:              var(--md-secondary-container);
+    --secondary-foreground:   var(--md-on-secondary-container);
 
-    /* Sidebar */
-    --sidebar-background: var(--bg-header);
-    --sidebar-foreground: var(--text-header);
-    --sidebar-border:     #1E2D45;
+    --muted:                  var(--md-surface-container);
+    --muted-foreground:       var(--md-on-surface-variant);
+
+    --accent:                 var(--md-surface-container-high);
+    --accent-foreground:      var(--md-on-surface);
+
+    --destructive:            var(--md-error);
+    --destructive-foreground: var(--md-on-error);
+
+    --border:                 var(--md-outline-variant);
+    --input:                  var(--md-surface-container-lowest);
+    --ring:                   var(--md-primary);
+
+    --radius: 0.5rem;
+
+    /* Navigation — MD3 Navigation Rail/Bar (light surfaces) */
+    --sidebar-background: var(--md-surface-container-low);
+    --sidebar-foreground: var(--md-on-surface);
+    --sidebar-border:     var(--md-outline-variant);
+    --nav-inactive:       var(--md-on-surface-variant);
+
+    /* Surface shorthand */
+    --surface: var(--md-surface-container-lowest);
+
+    /* Shadows (tonal — subtly green-tinted) */
+    --shadow-card: 0 1px 2px 0 rgb(26 30 23 / 0.08), 0 1px 4px 1px rgb(26 30 23 / 0.04);
+    --shadow-md:   0 4px 12px 0 rgb(26 30 23 / 0.10), 0 2px 6px -1px rgb(26 30 23 / 0.06);
+    --shadow-lg:   0 8px 24px 0 rgb(26 30 23 / 0.12), 0 4px 12px -2px rgb(26 30 23 / 0.08);
 
     /* Status semantics */
-    --status-red:    #DC2626;
-    --status-amber:  #D97706;
-    --status-green:  #16A34A;
-    --status-blue:   #2563EB;
+    --status-red:   #B3261E;
+    --status-amber: #B85C00;
+    --status-green: #2E6F1A;
+    --status-blue:  #1565C0;
 
     /* Charts */
-    --chart-1: #F97316;
-    --chart-2: #2563EB;
-    --chart-3: #DC2626;
-    --chart-4: #16A34A;
-    --chart-5: #7C3AED;
+    --chart-1: var(--md-primary);
+    --chart-2: #1565C0;
+    --chart-3: var(--md-error);
+    --chart-4: var(--md-secondary);
+    --chart-5: #6750A4;
   }
 }
 
@@ -86,156 +133,161 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-    font-feature-settings: "cv11" 1, "ss01" 1;
+    font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Syne', system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Barlow Semi Condensed', system-ui, sans-serif;
+    letter-spacing: -0.01em;
     text-wrap: balance;
   }
 }
 
-/* Prevenir scroll horizontal */
+/* Prevent horizontal scroll */
 html, body {
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Safe area móvil */
+/* Safe area mobile */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Ocultar scrollbar */
+/* Scrollbar utilities */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Thin scrollbar */
 .thin-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
 .thin-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.thin-scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.thin-scrollbar::-webkit-scrollbar-thumb { background: var(--md-outline-variant); border-radius: 2px; }
 
-/* Sidebar texture — subtle grid */
-.sidebar-grid {
-  background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-/* ─── GMAO Component Layer ─────────────────────────────────────────── */
+/* ─── GMAO Component Layer (Material Design 3) ───────────────────── */
 
 @layer components {
 
-  /* ── Inputs ── */
+  /* ── Inputs (MD3 Outlined Text Field) ── */
   .gmao-input {
-    @apply w-full px-3 py-2.5 text-sm border border-border rounded-md bg-white text-foreground
+    @apply w-full px-4 py-3 text-sm border border-border rounded-lg bg-input text-foreground
            placeholder:text-muted-foreground
-           focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-primary
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           focus:outline-none focus:border-primary
+           disabled:opacity-40 disabled:cursor-not-allowed;
     transition-property: border-color, box-shadow, opacity;
     transition-duration: 150ms;
     transition-timing-function: ease;
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(46, 111, 26, 0.15);
+    }
   }
 
   .gmao-input-sm {
-    @apply px-2.5 py-1.5 text-xs border border-border rounded-md bg-white text-foreground
+    @apply px-3 py-2 text-xs border border-border rounded-md bg-input text-foreground
            placeholder:text-muted-foreground
-           focus:outline-none focus:ring-1 focus:ring-orange-400/30 focus:border-primary
-           disabled:opacity-50;
+           focus:outline-none focus:border-primary
+           disabled:opacity-40;
     transition-property: border-color, box-shadow, opacity;
     transition-duration: 150ms;
     transition-timing-function: ease;
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(46, 111, 26, 0.15);
+    }
   }
 
   .gmao-select {
-    @apply w-full px-3 py-2.5 text-sm border border-border rounded-md bg-white text-foreground
-           focus:outline-none focus:ring-2 focus:ring-orange-400/30 focus:border-primary
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-full px-4 py-3 text-sm border border-border rounded-lg bg-input text-foreground
+           focus:outline-none focus:border-primary
+           disabled:opacity-40 disabled:cursor-not-allowed;
     transition-property: border-color, box-shadow, opacity;
     transition-duration: 150ms;
     transition-timing-function: ease;
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(46, 111, 26, 0.15);
+    }
   }
 
   /* ── Labels ── */
   .gmao-label {
     @apply block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Barlow Semi Condensed', sans-serif;
   }
 
   .gmao-error {
     @apply text-xs text-destructive mt-1;
-    /* role="alert" must be set in JSX; this comment serves as reminder */
+    /* role="alert" must be set in JSX */
   }
 
-  /* ── Buttons ── */
+  /* ── Buttons (MD3 — pill shapes, tonal elevation) ── */
   .gmao-btn-primary {
-    @apply w-full py-2.5 bg-primary text-white text-sm font-semibold rounded-md
-           disabled:opacity-50 disabled:cursor-not-allowed
+    /* MD3 Filled Button */
+    @apply w-full py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-full
+           disabled:opacity-40 disabled:cursor-not-allowed
            active:scale-[0.98];
-    font-family: 'Syne', sans-serif;
-    letter-spacing: 0.01em;
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    letter-spacing: 0.02em;
     touch-action: manipulation;
-    transition-property: opacity, transform, filter;
+    transition-property: opacity, transform, box-shadow;
     transition-duration: 150ms;
     transition-timing-function: ease;
-    &:not(:disabled):hover { filter: brightness(0.93); }
+    box-shadow: 0 1px 3px 0 rgb(46 111 26 / 0.15), 0 1px 2px -1px rgb(46 111 26 / 0.10);
+    &:not(:disabled):hover {
+      box-shadow: 0 3px 8px 0 rgb(46 111 26 / 0.22), 0 1px 4px -1px rgb(46 111 26 / 0.12);
+    }
   }
 
   .gmao-btn-destructive {
-    @apply w-full py-2.5 bg-destructive text-white text-sm font-semibold rounded-md
-           disabled:opacity-50 disabled:cursor-not-allowed
+    /* MD3 Filled Button — error variant */
+    @apply w-full py-3 bg-destructive text-destructive-foreground text-sm font-semibold rounded-full
+           disabled:opacity-40 disabled:cursor-not-allowed
            active:scale-[0.98];
-    font-family: 'Syne', sans-serif;
+    font-family: 'Barlow Semi Condensed', sans-serif;
     touch-action: manipulation;
-    transition-property: opacity, transform, filter;
+    transition-property: opacity, transform;
     transition-duration: 150ms;
     transition-timing-function: ease;
-    &:not(:disabled):hover { filter: brightness(0.92); }
   }
 
   .gmao-btn-secondary {
-    @apply px-4 py-2 text-sm font-medium text-foreground bg-secondary border border-border rounded-md;
-    touch-action: manipulation;
-    transition-property: background-color, color, border-color;
-    transition-duration: 150ms;
-    transition-timing-function: ease;
-    &:hover { @apply bg-accent; }
-  }
-
-  /* ── List rows ── */
-  .gmao-list-row {
-    @apply w-full text-left flex items-center gap-3 px-4 py-3.5
-           border-b border-border last:border-0 bg-white;
+    /* MD3 Outlined Button */
+    @apply px-5 py-2.5 text-sm font-medium text-primary bg-transparent border border-primary rounded-full
+           hover:bg-accent;
+    font-family: 'Barlow Semi Condensed', sans-serif;
     touch-action: manipulation;
     transition-property: background-color;
     transition-duration: 150ms;
     transition-timing-function: ease;
-    &:hover { background-color: var(--accent); }
   }
 
-  /* ── Cards ── */
+  /* ── List rows (MD3 List Item) ── */
+  .gmao-list-row {
+    @apply w-full text-left flex items-center gap-3 px-4 py-3.5
+           border-b border-border last:border-0 bg-card;
+    touch-action: manipulation;
+    transition-property: background-color;
+    transition-duration: 100ms;
+    transition-timing-function: ease;
+    &:hover { @apply bg-accent; }
+  }
+
+  /* ── Cards (MD3 Elevated Card) ── */
   .gmao-card {
-    @apply bg-white border border-border rounded-lg overflow-hidden;
+    @apply bg-card border border-border rounded-xl overflow-hidden;
     box-shadow: var(--shadow-card);
   }
 
   /* ── Section titles ── */
   .gmao-section-title {
     @apply text-[11px] font-bold uppercase tracking-wider text-muted-foreground;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Barlow Semi Condensed', sans-serif;
   }
 
-  /* ── Tabs ── */
+  /* ── Tabs (MD3 Primary Tabs) ── */
   .gmao-tab {
-    @apply flex-1 min-w-[80px] py-2.5 text-xs font-semibold whitespace-nowrap
-           border-b-2;
-    font-family: 'Syne', sans-serif;
-    letter-spacing: 0.03em;
+    @apply flex-1 min-w-[80px] py-3 text-xs font-semibold whitespace-nowrap
+           border-b-2 uppercase tracking-wide;
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    letter-spacing: 0.05em;
     touch-action: manipulation;
     transition-property: color, border-color;
     transition-duration: 150ms;
@@ -250,42 +302,46 @@ html, body {
     @apply border-transparent text-muted-foreground hover:text-foreground;
   }
 
-  /* ── Period buttons ── */
+  /* ── Period buttons (MD3 Segmented style) ── */
   .gmao-period-btn {
-    @apply flex-1 text-xs font-semibold py-2 rounded-md border transition-colors;
-    font-family: 'Syne', sans-serif;
+    @apply flex-1 text-xs font-semibold py-2 rounded-full border;
+    font-family: 'Barlow Semi Condensed', sans-serif;
     letter-spacing: 0.02em;
+    touch-action: manipulation;
+    transition-property: background-color, color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
   }
 
   .gmao-period-btn-active {
-    @apply bg-primary text-white border-primary;
+    @apply bg-primary text-primary-foreground border-primary;
   }
 
   .gmao-period-btn-inactive {
-    @apply bg-white text-foreground border-border hover:bg-accent;
+    @apply bg-transparent text-foreground border-border hover:bg-accent;
   }
 
-  /* ── Status strips (left border) ── */
+  /* ── Status strips (left border — semantic status) ── */
   .strip-red    { @apply border-l-[3px] border-l-red-500; }
   .strip-amber  { @apply border-l-[3px] border-l-amber-500; }
-  .strip-green  { @apply border-l-[3px] border-l-green-500; }
-  .strip-blue   { @apply border-l-[3px] border-l-blue-500; }
+  .strip-green  { @apply border-l-[3px] border-l-green-600; }
+  .strip-blue   { @apply border-l-[3px] border-l-blue-600; }
   .strip-gray   { @apply border-l-[3px] border-l-gray-300; }
   .strip-orange { @apply border-l-[3px] border-l-orange-500; }
 
-  /* ── Badges ── */
+  /* ── Badges (MD3 Assist Chip — pill shaped) ── */
   .gmao-badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold;
-    font-family: 'Syne', sans-serif;
-    letter-spacing: 0.02em;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    letter-spacing: 0.03em;
   }
 
-  .gmao-badge-red    { @apply bg-red-50 text-red-700 border border-red-200; }
-  .gmao-badge-amber  { @apply bg-amber-50 text-amber-700 border border-amber-200; }
-  .gmao-badge-green  { @apply bg-green-50 text-green-700 border border-green-200; }
-  .gmao-badge-blue   { @apply bg-blue-50 text-blue-700 border border-blue-200; }
-  .gmao-badge-gray   { @apply bg-gray-100 text-gray-600 border border-gray-200; }
-  .gmao-badge-orange { @apply bg-orange-50 text-orange-700 border border-orange-200; }
+  .gmao-badge-red    { @apply bg-red-50 text-red-800 border border-red-200; }
+  .gmao-badge-amber  { @apply bg-amber-50 text-amber-800 border border-amber-200; }
+  .gmao-badge-green  { @apply bg-green-50 text-green-800 border border-green-200; }
+  .gmao-badge-blue   { @apply bg-blue-50 text-blue-800 border border-blue-200; }
+  .gmao-badge-gray   { @apply bg-gray-100 text-gray-700 border border-gray-200; }
+  .gmao-badge-orange { @apply bg-orange-50 text-orange-800 border border-orange-200; }
 
   /* ── Mono data display ── */
   .gmao-mono {
@@ -294,18 +350,35 @@ html, body {
     @apply text-xs;
   }
 
-  /* ── Stat number (big KPI display) ── */
+  /* ── Stat number (KPI display) ── */
   .gmao-stat-num {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Barlow Semi Condensed', sans-serif;
     font-variant-numeric: tabular-nums;
     @apply text-3xl font-bold leading-none tracking-tight;
   }
 
   /* ── Display heading ── */
   .font-display {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Barlow Semi Condensed', sans-serif;
+  }
+
+  /* ── MD3 Navigation indicator pill ── */
+  .md3-nav-indicator {
+    background-color: var(--md-secondary-container);
+    border-radius: var(--md-shape-xl);
   }
 }
+
+/* ── Sheet animations ── */
+@keyframes sheet-in-right  { from { transform: translateX(100%) } to { transform: translateX(0) } }
+@keyframes sheet-out-right { from { transform: translateX(0) } to { transform: translateX(100%) } }
+@keyframes sheet-in-bottom  { from { transform: translateY(100%) } to { transform: translateY(0) } }
+@keyframes sheet-out-bottom { from { transform: translateY(0) } to { transform: translateY(100%) } }
+
+.sheet-right[data-state='open']  { animation: sheet-in-right  220ms cubic-bezier(0.4,0,0.2,1) forwards; }
+.sheet-right[data-state='closed'] { animation: sheet-out-right 200ms cubic-bezier(0.4,0,0.2,1) forwards; }
+.sheet-bottom[data-state='open']  { animation: sheet-in-bottom  220ms cubic-bezier(0.4,0,0.2,1) forwards; }
+.sheet-bottom[data-state='closed'] { animation: sheet-out-bottom 200ms cubic-bezier(0.4,0,0.2,1) forwards; }
 
 /* ── Reduced motion — honor OS accessibility preference ── */
 @media (prefers-reduced-motion: reduce) {

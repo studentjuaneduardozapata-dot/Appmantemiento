@@ -75,8 +75,8 @@ export default {
         lg:   'var(--shadow-lg)',
       },
       fontFamily: {
-        sans:    ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Syne', 'system-ui', 'sans-serif'],
+        sans:    ['Source Sans 3', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Barlow Semi Condensed', 'system-ui', 'sans-serif'],
         mono:    ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       borderRadius: {

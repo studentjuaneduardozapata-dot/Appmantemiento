@@ -483,10 +483,16 @@ Implementadas según Vercel Web Interface Guidelines (2026-03-11):
 - `font-variant-numeric: tabular-nums` en datos numéricos (`.gmao-mono`, `.gmao-stat-num`)
 - `text-wrap: balance` en headings h1–h6
 
-### 19.3 Tokens de diseño
+### 19.3 Tokens de diseño — FIELD MANUAL (MD3, actualizado 2026-03-12)
 - No usar colores Tailwind crudos (`bg-gray-900`, `bg-red-600`) en páginas — usar tokens: `bg-destructive`, `text-foreground`, `bg-background`, etc.
-- Header de sub-páginas: `bg-card border-b-2 border-primary` (naranja)
+- Header de sub-páginas: `bg-card border-b border-border` con sombra sutil (MD3 Top App Bar)
 - Skip link: primer elemento del DOM para usuarios de teclado
+- Paleta: verde agrícola `--md-primary: #2E6F1A`, olivo-sage secundario, ámbar terciario
+- Superficies: `--md-background: #F8FBF3` (tono cálido ligero), cards `#FFFFFF`
+- Navegación: Navigation Rail desktop (80px, `surface-container-low`), Navigation Bar mobile (MD3 pills)
+- Tipografía: `Barlow Semi Condensed` display, `Source Sans 3` body, `JetBrains Mono` mono
+- Botones: `rounded-full` (MD3 filled), cards: `rounded-xl` (MD3 medium-large)
+- Tokens CSS: `--md-*` vars en `src/index.css`, bridgeados a `--shadcn` vars estándar
 
 ### 19.4 Formularios
 - Submit con estado de carga: spinner `<Loader2 animate-spin>` + texto "Guardando…"

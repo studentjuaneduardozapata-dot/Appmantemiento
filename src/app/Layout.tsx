@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { Sidebar } from '@/components/shared/Sidebar'
 import { BottomNav } from '@/components/shared/BottomNav'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 
@@ -13,14 +14,17 @@ export function Layout() {
         Saltar al contenido
       </a>
 
-      {/* Main content — md:ml-56 offsets the fixed sidebar on desktop */}
-      <main id="main-content" className="flex-1 pb-16 md:pb-0 md:ml-56 min-h-screen">
+      {/* Navigation Rail — desktop only (hidden on mobile via md:flex in Sidebar) */}
+      <Sidebar />
+
+      {/* Main content — md:ml-20 offsets the fixed 80px Navigation Rail on desktop */}
+      <main id="main-content" className="flex-1 pb-16 md:pb-0 md:ml-20 min-h-screen">
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>
       </main>
 
-      {/* Bottom nav (mobile only) */}
+      {/* Navigation Bar — mobile only */}
       <BottomNav />
     </div>
   )

@@ -1,12 +1,20 @@
 import { useState } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
 import { format } from 'date-fns'
-import { X, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import type { MaintenanceTask, MaintenancePlan } from '@/lib/db'
 import { completeTask } from '@/hooks/useMaintenanceTasks'
 import { useStepsByTask } from '@/hooks/useMaintenanceSteps'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetCloseButton,
+  SheetBody,
+  SheetFooter,
+} from '@/components/ui/sheet'
 
 interface CompleteTaskDialogProps {
   open: boolean
@@ -58,30 +66,24 @@ export function CompleteTaskDialog({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
-        <Dialog.Content className="fixed z-50 bg-card rounded-xl shadow-xl p-5 w-[calc(100%-2rem)] max-w-sm left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-4">
-            <Dialog.Title className="font-semibold text-foreground">
-              Completar tarea
-            </Dialog.Title>
-            <Dialog.Close asChild>
-              <button type="button" aria-label="Cerrar" className="p-1 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-md">
-                <X className="w-5 h-5" aria-hidden="true" />
-              </button>
-            </Dialog.Close>
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="bottom" overlayVariant="light" aria-label="Completar tarea">
+        {/* Header */}
+        <SheetHeader side="bottom">
+          <div className="flex items-center justify-between">
+            <SheetTitle>Completar tarea</SheetTitle>
+            <SheetCloseButton label="Cerrar" />
           </div>
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
+        </SheetHeader>
 
-          <p className="text-sm text-muted-foreground mb-4 bg-muted rounded-lg px-3 py-2">
-            {task.description}
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form body */}
+        <SheetBody>
+          <form id="complete-task-form" onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
             {/* Quién completó */}
             <div>
               <label htmlFor="ctd-completed-by" className="gmao-label">
-                Completado por <span className="text-destructive">*</span>
+                Completado por <span className="text-destructive" aria-hidden="true">*</span>
               </label>
               {users && users.length > 0 ? (
                 <select
@@ -133,10 +135,7 @@ export function CompleteTaskDialog({
                 <label className="gmao-label mb-2">Sub-pasos (opcional)</label>
                 <div className="space-y-1.5 border border-border rounded-lg p-2.5">
                   {steps.map((step) => (
-                    <label
-                      key={step.id}
-                      className="flex items-center gap-2.5 cursor-pointer"
-                    >
+                    <label key={step.id} className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={checkedStepIds.includes(step.id)}
@@ -147,20 +146,19 @@ export function CompleteTaskDialog({
                     </label>
                   ))}
                 </div>
-                {steps.length > 0 && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {checkedStepIds.length}/{steps.length} sub-pasos marcados
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  {checkedStepIds.length}/{steps.length} sub-pasos marcados
+                </p>
               </div>
             )}
 
             {/* Notas */}
             <div>
-              <label className="gmao-label">
+              <label htmlFor="ctd-notes" className="gmao-label">
                 Notas (opcional)
               </label>
               <textarea
+                id="ctd-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
@@ -168,19 +166,24 @@ export function CompleteTaskDialog({
                 className="gmao-input resize-none"
               />
             </div>
-
-            <button
-              type="submit"
-              disabled={saving || !completedBy}
-              className="w-full py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
-            >
-              {saving
-                ? <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />Guardando…</>
-                : 'Marcar como completada'}
-            </button>
           </form>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </SheetBody>
+
+        {/* Sticky submit */}
+        <SheetFooter>
+          <button
+            type="submit"
+            form="complete-task-form"
+            disabled={saving || !completedBy}
+            className="gmao-btn-primary flex items-center justify-center gap-1.5"
+            style={{ backgroundColor: saving || !completedBy ? undefined : '#16a34a' }}
+          >
+            {saving
+              ? <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />Guardando…</>
+              : 'Marcar como completada'}
+          </button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
