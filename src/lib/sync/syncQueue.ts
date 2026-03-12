@@ -267,11 +267,24 @@ async function pushToSupabase(
     return
   }
 
+  // Excluir campos internos de Dexie que no existen en Supabase
+  const DEXIE_ONLY_FIELDS = new Set(['autoId', 'completed_step_ids'])
   const clean = Object.fromEntries(
     Object.entries(payload)
-      .filter(([k]) => !k.startsWith('_') && k !== 'autoId')
+      .filter(([k]) => !k.startsWith('_') && !DEXIE_ONLY_FIELDS.has(k))
       .map(([k, v]) => [k, v === '' ? null : v])
   )
+
+  // Garantizar updated_at para integridad cronológica en Supabase.
+  // Si el payload llega sin él (bug upstream), se inyecta el timestamp actual.
+  const TABLES_WITH_UPDATED_AT = new Set([
+    'users', 'assets', 'incidents', 'maintenance_plans', 'maintenance_tasks', 'task_steps',
+  ])
+  if (TABLES_WITH_UPDATED_AT.has(table) && !clean.updated_at) {
+    clean.updated_at = new Date().toISOString()
+    syncLogger.warn(`updated_at ausente en payload ${table}#${String(clean.id)} — inyectado`)
+  }
+
   const { error } = await supabase.from(table).upsert(clean)
   if (error) {
     if (error.code === '23505') {

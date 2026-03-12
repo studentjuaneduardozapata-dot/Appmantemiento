@@ -3,7 +3,10 @@
     "allow": [
       "Bash(node -e \"const fs=require\\(''fs''\\); const b=Buffer.from\\(''iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='',''base64''\\); fs.writeFileSync\\(''public/icons/icon-192x192.png'',b\\); fs.writeFileSync\\(''public/icons/icon-512x512.png'',b\\); console.log\\(''done''\\);\")",
       "Bash(npm install)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(npm install:*)",
+      "Bash(npx pwa-assets-generator:*)",
+      "Bash(node scripts/generate-icons.mjs)"
     ]
   }
 }

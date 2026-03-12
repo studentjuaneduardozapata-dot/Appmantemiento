@@ -8,6 +8,7 @@ import { syncLogger } from './syncLogger'
 
 const SYNC_INTERVAL_MS = 3 * 60 * 1000      // 3 minutos
 const HEARTBEAT_INTERVAL_MS = 30 * 60 * 1000 // 30 minutos
+const CURRENT_DB_VERSION = 7                  // Debe coincidir con la versión más alta en db.ts
 
 class SyncManager {
   private _isRunning = false
@@ -59,11 +60,33 @@ class SyncManager {
     }
   }
 
+  /**
+   * Comprueba si el schema de Dexie fue migrado desde el último arranque.
+   * Si la versión guardada en sync_meta < CURRENT_DB_VERSION, resetea
+   * last_sync_timestamp para forzar un pull completo y evitar fragmentación.
+   */
+  private async _checkDbVersion(): Promise<void> {
+    const saved = await db.sync_meta.get('db_schema_version')
+    const savedVersion = saved ? parseInt(saved.value, 10) : 0
+
+    if (savedVersion < CURRENT_DB_VERSION) {
+      if (savedVersion > 0) {
+        syncLogger.info(
+          `Schema migrado v${savedVersion}→v${CURRENT_DB_VERSION}: forzando resync limpio`
+        )
+        await db.sync_meta.delete('last_sync_timestamp')
+      }
+      await db.sync_meta.put({ key: 'db_schema_version', value: String(CURRENT_DB_VERSION) })
+    }
+  }
+
   private async _doSync(): Promise<void> {
     if (!networkStatus.isOnline) {
       syncLogger.debug('Sin conexión, sync omitido')
       return
     }
+
+    await this._checkDbVersion()
 
     await db.sync_meta.put({
       key: 'sync_status',

@@ -43,6 +43,11 @@ type HeartbeatTable = (typeof HEARTBEAT_TABLES)[number]
 const HEARTBEAT_DELTA_ABSOLUTE = 5   // diferencia máxima en nº de registros
 const HEARTBEAT_DELTA_PERCENT = 0.10 // 10% de divergencia
 
+// Tablas con updated_at en Dexie/Supabase — aplican updated-at-wins al hacer pull
+const TABLES_WITH_UPDATED_AT_WINS = new Set<SyncTable>([
+  'users', 'assets', 'incidents', 'maintenance_plans', 'maintenance_tasks', 'task_steps',
+])
+
 async function getLastSyncTimestamp(): Promise<string | null> {
   const meta = await db.sync_meta.get('last_sync_timestamp')
   return meta?.value ?? null
@@ -79,7 +84,30 @@ async function pullTable(table: SyncTable, since: string | null): Promise<number
     if (table === 'asset_categories') {
       await deduplicateCategoriesByName(data as Record<string, unknown>[])
     }
-    await dexieTable.bulkPut(data)
+
+    if (TABLES_WITH_UPDATED_AT_WINS.has(table)) {
+      // Updated-at-wins: solo sobrescribir si el registro remoto es estrictamente más nuevo.
+      // Si el local tiene _synced: false (cambios pendientes de push), se preserva.
+      const remoteRecords = data as Array<Record<string, unknown>>
+      const ids = remoteRecords.map(r => r.id as string).filter(Boolean)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const localRecords: Record<string, unknown>[] = await (dexieTable as any).where('id').anyOf(ids).toArray()
+      const localMap = new Map<string, Record<string, unknown>>(
+        localRecords.map(r => [r.id as string, r])
+      )
+      const toUpsert = remoteRecords.filter(remote => {
+        const local = localMap.get(remote.id as string)
+        if (!local) return true                          // Registro nuevo — aceptar
+        if (local._synced === false) return false        // Cambios locales pendientes — preservar
+        if (!local.updated_at || !remote.updated_at) return true
+        return (remote.updated_at as string) > (local.updated_at as string)
+      })
+      if (toUpsert.length > 0) {
+        await dexieTable.bulkPut(toUpsert)
+      }
+    } else {
+      await dexieTable.bulkPut(data)
+    }
   }
 
   return data.length
@@ -124,14 +152,20 @@ export async function pullAll(): Promise<void> {
   // Guardar ANTES de comenzar — solo se usa como nuevo watermark si todo sale bien
   const syncStart = new Date().toISOString()
 
-  syncLogger.info('Iniciando pull incremental', { since })
+  // Buffer de seguridad de 2 minutos para mitigar clock skew entre dispositivos.
+  // bulkPut / updated-at-wins son idempotentes → los duplicados resultantes son seguros.
+  const sinceWithBuffer = since
+    ? new Date(new Date(since).getTime() - 120_000).toISOString()
+    : null
+
+  syncLogger.info('Iniciando pull incremental', { since, sinceWithBuffer })
 
   let totalPulled = 0
   let hasCriticalFailure = false
 
   for (const table of SYNC_TABLES) {
     try {
-      const count = await pullTable(table, since)
+      const count = await pullTable(table, sinceWithBuffer)
       totalPulled += count
     } catch (err) {
       syncLogger.warn(`Error pulling ${table}`, err)
@@ -144,7 +178,7 @@ export async function pullAll(): Promise<void> {
   }
 
   try {
-    await pullDeletedRecords(since)
+    await pullDeletedRecords(sinceWithBuffer)
   } catch (err) {
     syncLogger.warn('Error pulling deleted_records', err)
   }
@@ -163,16 +197,18 @@ export async function pullAll(): Promise<void> {
 // ─── Conteo local por tabla (sin registros soft-deleted) ──────────────────────
 
 async function countLocal(table: HeartbeatTable): Promise<number> {
+  // Solo contar registros ya confirmados en Supabase (_synced !== false).
+  // Los registros _synced: false son creaciones offline aún pendientes de push —
+  // incluirlos causaría falsos positivos de divergencia en el heartbeat.
   switch (table) {
     case 'assets':
-      return db.assets.filter((r) => !r.deleted_at).count()
+      return db.assets.filter((r) => !r.deleted_at && r._synced !== false).count()
     case 'incidents':
-      return db.incidents.filter((r) => !r.deleted_at).count()
+      return db.incidents.filter((r) => !r.deleted_at && r._synced !== false).count()
     case 'maintenance_tasks':
-      return db.maintenance_tasks.filter((r) => !r.deleted_at).count()
+      return db.maintenance_tasks.filter((r) => !r.deleted_at && r._synced !== false).count()
     case 'maintenance_logs':
-      // maintenance_logs no tiene deleted_at en Dexie — contar todos
-      return db.maintenance_logs.count()
+      return db.maintenance_logs.filter((r) => r._synced !== false).count()
   }
 }
 
@@ -206,9 +242,12 @@ export async function performDataHeartbeat(): Promise<void> {
         `Heartbeat ${table}: local=${localCount} remote=${remoteCount} delta=${delta} (${(percentDelta * 100).toFixed(1)}%)`
       )
 
-      if (delta > HEARTBEAT_DELTA_ABSOLUTE || percentDelta > HEARTBEAT_DELTA_PERCENT) {
+      // Solo forzar resync si local tiene MENOS registros que remoto (datos faltantes).
+      // Si local > remoto, el exceso son registros pendientes de push — se resolverá solo.
+      if (localCount < remoteCount &&
+          (delta > HEARTBEAT_DELTA_ABSOLUTE || percentDelta > HEARTBEAT_DELTA_PERCENT)) {
         syncLogger.warn(
-          `Heartbeat: divergencia detectada en ${table} (delta=${delta}, ${(percentDelta * 100).toFixed(1)}%) — forzando resync completo`
+          `Heartbeat: divergencia detectada en ${table} (local=${localCount} < remote=${remoteCount}, delta=${delta}, ${(percentDelta * 100).toFixed(1)}%) — forzando resync completo`
         )
         // Resetear timestamp → el próximo pullAll() traerá todos los registros sin filtro
         await db.sync_meta.delete('last_sync_timestamp')
