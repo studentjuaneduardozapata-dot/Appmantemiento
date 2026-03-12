@@ -6,7 +6,8 @@
       "Bash(npm run build)",
       "Bash(npm install:*)",
       "Bash(npx pwa-assets-generator:*)",
-      "Bash(node scripts/generate-icons.mjs)"
+      "Bash(node scripts/generate-icons.mjs)",
+      "Bash(ls -la \"c:\\\\Users\\\\Juan Eduardo\\\\Videos\\\\gmao-planta\\\\public\\\\icons\"\" 2>/dev/null || echo \"Directory not found \")"
     ]
   }
 }

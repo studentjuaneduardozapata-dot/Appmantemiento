@@ -715,21 +715,48 @@ function DataTab() {
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   async function handleClearDb() {
-    const tablesToClear = db.tables.filter(
-      (t) => t.name !== 'sync_meta' && t.name !== 'sync_queue'
-    )
-    await Promise.all(tablesToClear.map((t) => t.clear()))
-    toast.success('Base de datos local limpiada')
-    setTimeout(() => window.location.reload(), 800)
+    // Preservar el PIN para restaurarlo tras el reset total
+    const pinMeta = await db.sync_meta.get('admin_pin')
+    // Limpiar todas las tablas (incluida sync_meta y sync_queue para reset completo)
+    await Promise.all(db.tables.map((t) => t.clear()))
+    // Restaurar PIN para no bloquear el acceso al panel
+    if (pinMeta) await db.sync_meta.put(pinMeta)
+    // Limpiar cachés del Service Worker (Workbox) para eliminar assets obsoletos
+    if ('caches' in window) {
+      const keys = await window.caches.keys()
+      await Promise.all(keys.map((k) => window.caches.delete(k)))
+    }
+    toast.success('Hard reset completado — recargando')
+    setTimeout(() => window.location.reload(), 600)
+  }
+
+  async function handleResetSync() {
+    await db.sync_meta.delete('last_sync_timestamp')
+    toast.success('Sync reseteado — pull completo en el próximo ciclo')
   }
 
   return (
     <div className="bg-card rounded-xl border border-border p-4 space-y-4">
       <div>
-        <p className="gmao-section-title mb-1">Limpiar cache local</p>
+        <p className="gmao-section-title mb-1">Resetear sincronización</p>
         <p className="text-xs text-muted-foreground">
-          Elimina todos los datos locales (activos, fallas, tareas, etc.) excepto la configuración
-          del sistema. Los datos sincronizados con el servidor se recuperarán al reconectar.
+          Fuerza un pull completo desde el servidor en el próximo ciclo de sync.
+          No elimina datos locales.
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={handleResetSync}
+        className="w-full py-2.5 bg-secondary text-secondary-foreground text-sm font-medium rounded-xl hover:bg-secondary/80"
+      >
+        Resetear sync
+      </button>
+
+      <div className="border-t border-border pt-4">
+        <p className="gmao-section-title mb-1">Hard Reset</p>
+        <p className="text-xs text-muted-foreground">
+          Elimina todos los datos locales, la cola de sync y las cachés del Service Worker.
+          Los datos del servidor se recuperarán al reconectar. Se conserva el PIN de acceso.
         </p>
       </div>
       <button
@@ -737,12 +764,12 @@ function DataTab() {
         onClick={() => setConfirmOpen(true)}
         className="w-full py-2.5 bg-destructive text-destructive-foreground text-sm font-medium rounded-xl hover:bg-destructive/90"
       >
-        Limpiar base de datos local
+        Limpiar todo (Hard Reset)
       </button>
       <ConfirmDialog
         open={confirmOpen}
-        title="Limpiar base de datos"
-        description="Esta acción eliminará todos los datos locales no sincronizados. ¿Continuar?"
+        title="Hard Reset"
+        description="Eliminará todos los datos locales, la cola de sync y las cachés del navegador. Los datos del servidor se restaurarán al reconectar. ¿Continuar?"
         confirmLabel="Limpiar todo"
         confirmVariant="danger"
         onConfirm={handleClearDb}

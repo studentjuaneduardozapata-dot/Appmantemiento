@@ -2,13 +2,20 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+import pkg from './package.json'
 
 export default defineConfig({
+  define: {
+    // Inyecta la versión de package.json en el bundle para VERSION LOCK en syncManager
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icons/apple-touch-icon.png', 'icons/icon.svg'],
+      // 'prompt': el SW se instala pero no activa hasta que el usuario confirma.
+      // Permite mostrar el UpdatePrompt antes de recargar la página.
+      registerType: 'prompt',
+      includeAssets: ['icons/apple-touch-icon.png', 'icons/icon.svg'],
       manifest: {
         name: 'GMAO Planta de Maíz',
         short_name: 'GMAO',
@@ -41,8 +48,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         cleanupOutdatedCaches: true,
+        skipWaiting: false,
         navigateFallback: '/index.html',
         runtimeCaching: [
           {

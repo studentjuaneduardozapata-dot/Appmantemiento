@@ -61,6 +61,27 @@ class SyncManager {
   }
 
   /**
+   * Comprueba si la versión de la app (package.json) cambió en major o minor.
+   * Si es así, resetea last_sync_timestamp para forzar un pull completo y
+   * asegurar paridad de datos ante cambios de lógica entre versiones.
+   */
+  private async _checkAppVersion(): Promise<void> {
+    const current = __APP_VERSION__  // inyectado por vite.config.ts en build time
+    const saved = await db.sync_meta.get('app_version')
+    if (saved) {
+      const [cMaj, cMin] = current.split('.').map(Number)
+      const [sMaj, sMin] = saved.value.split('.').map(Number)
+      if (cMaj !== sMaj || cMin !== sMin) {
+        syncLogger.info(`Versión app ${saved.value}→${current}: forzando resync limpio`)
+        await db.sync_meta.delete('last_sync_timestamp')
+      }
+    }
+    if (!saved || saved.value !== current) {
+      await db.sync_meta.put({ key: 'app_version', value: current })
+    }
+  }
+
+  /**
    * Comprueba si el schema de Dexie fue migrado desde el último arranque.
    * Si la versión guardada en sync_meta < CURRENT_DB_VERSION, resetea
    * last_sync_timestamp para forzar un pull completo y evitar fragmentación.
@@ -86,6 +107,7 @@ class SyncManager {
       return
     }
 
+    await this._checkAppVersion()
     await this._checkDbVersion()
 
     await db.sync_meta.put({

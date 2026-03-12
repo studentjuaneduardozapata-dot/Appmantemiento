@@ -161,19 +161,19 @@ export async function pullAll(): Promise<void> {
   syncLogger.info('Iniciando pull incremental', { since, sinceWithBuffer })
 
   let totalPulled = 0
-  let hasCriticalFailure = false
+  let hasAnyFailure = false
 
   for (const table of SYNC_TABLES) {
     try {
       const count = await pullTable(table, sinceWithBuffer)
       totalPulled += count
     } catch (err) {
-      syncLogger.warn(`Error pulling ${table}`, err)
+      hasAnyFailure = true
       if (CRITICAL_TABLES.has(table)) {
-        hasCriticalFailure = true
-        syncLogger.error(`Fallo crítico en pull de ${table} — timestamp NO se actualizará`)
+        syncLogger.error(`Fallo crítico en pull de ${table} — timestamp NO se actualizará`, err)
+      } else {
+        syncLogger.warn(`Fallo en pull de ${table} — timestamp NO se actualizará`, err)
       }
-      // Tablas no críticas (users, areas, asset_categories): continuar sin marcar fallo
     }
   }
 
@@ -183,13 +183,14 @@ export async function pullAll(): Promise<void> {
     syncLogger.warn('Error pulling deleted_records', err)
   }
 
-  // Solo avanzar el watermark si no hubo fallos en tablas críticas
-  if (!hasCriticalFailure) {
+  // Sync atómico: el watermark solo avanza si TODAS las tablas completaron sin error.
+  // Cualquier fallo (crítico o no) deja el timestamp "sucio" para reintentar el próximo ciclo.
+  if (!hasAnyFailure) {
     await setLastSyncTimestamp(syncStart)
     syncLogger.info(`Pull completado: ${totalPulled} registros. Timestamp actualizado.`)
   } else {
     syncLogger.warn(
-      `Pull completado con errores críticos: ${totalPulled} registros. Timestamp NO actualizado — se reintentará en el próximo ciclo.`
+      `Pull completado con errores: ${totalPulled} registros. Timestamp NO actualizado — se reintentará en el próximo ciclo.`
     )
   }
 }
